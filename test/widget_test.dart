@@ -1,30 +1,81 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Basic widget test for the Care Ledger app.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
-import 'package:care_ledger_app/main.dart';
+import 'package:care_ledger_app/app/theme.dart';
+import 'package:care_ledger_app/app/navigation_shell.dart';
+import 'package:care_ledger_app/features/ledger/infrastructure/ledger_repository.dart';
+import 'package:care_ledger_app/features/ledger/infrastructure/care_entry_repository.dart';
+import 'package:care_ledger_app/features/reviews/infrastructure/review_repository.dart';
+import 'package:care_ledger_app/features/settlements/infrastructure/settlement_repository.dart';
+import 'package:care_ledger_app/features/ledger/application/ledger_service.dart';
+import 'package:care_ledger_app/features/reviews/application/review_service.dart';
+import 'package:care_ledger_app/features/balance/application/balance_service.dart';
+import 'package:care_ledger_app/features/settlements/application/settlement_service.dart';
+import 'package:care_ledger_app/features/ledger/presentation/ledger_provider.dart';
+import 'package:care_ledger_app/features/reviews/presentation/review_provider.dart';
+import 'package:care_ledger_app/features/balance/presentation/balance_provider.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App loads and shows navigation bar', (WidgetTester tester) async {
+    // Set up dependencies
+    final ledgerRepo = InMemoryLedgerRepository();
+    final entryRepo = InMemoryCareEntryRepository();
+    final reviewRepo = InMemoryReviewRepository();
+    final settlementRepo = InMemorySettlementRepository();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    final ledgerService = LedgerService(
+      ledgerRepo: ledgerRepo,
+      entryRepo: entryRepo,
+    );
+    final reviewService = ReviewService(
+      entryRepo: entryRepo,
+      reviewRepo: reviewRepo,
+    );
+    final balanceService = BalanceService(
+      entryRepo: entryRepo,
+      settlementRepo: settlementRepo,
+    );
+    final settlementService = SettlementService(
+      settlementRepo: settlementRepo,
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (_) => LedgerProvider(service: ledgerService),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => ReviewProvider(service: reviewService),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => BalanceProvider(
+              balanceService: balanceService,
+              settlementService: settlementService,
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const NavigationShell(),
+        ),
+      ),
+    );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.pumpAndSettle();
+
+    // Verify bottom navigation bar is present with all tabs
+    expect(find.text('Ledger'), findsWidgets);
+    expect(find.text('Review'), findsWidgets);
+    expect(find.text('Timeline'), findsWidgets);
+    expect(find.text('Balance'), findsWidgets);
+    expect(find.text('Settings'), findsWidgets);
+
+    // Verify welcome screen shows when no ledger exists
+    expect(find.text('Welcome to Care Ledger'), findsOneWidget);
+    expect(find.text('Create Ledger'), findsOneWidget);
   });
 }
