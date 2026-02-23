@@ -78,7 +78,7 @@ jobs:
         keystore_password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         key_alias: ${{ secrets.ANDROID_KEY_ALIAS }}
         key_password: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        app_name: 'Min Android Template'
+        app_name: 'Care Ledger'
         organization: 'Development'
     
     - name: Determine version
@@ -111,7 +111,7 @@ jobs:
       run: |
         VERSION="${{ inputs.version_name }}"
         RELEASE_TYPE="${{ inputs.release_type }}"
-        APP_NAME="min-android-template"
+        APP_NAME="care-ledger-app"
         
         mkdir -p build/artifacts
         cp build/app/outputs/flutter-apk/app-release.apk \

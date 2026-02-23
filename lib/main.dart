@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 // Available services (uncomment to use):
-// import 'package:min_flutter_template/services/storage_service.dart';
-// import 'package:min_flutter_template/services/network_service.dart';
+// import 'package:care_ledger_app/services/storage_service.dart';
+// import 'package:care_ledger_app/services/network_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,12 +20,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'My App', // TODO: Change to your app name
+      title: 'Care Ledger',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'My App'), // TODO: Change to your app name
+      home: const MyHomePage(title: 'Care Ledger'),
     );
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:min_flutter_template/ollama_toolkit/models/ollama_message.dart';
+import 'package:care_ledger_app/ollama_toolkit/models/ollama_message.dart';
 
 void main() {
   group('OllamaMessage', () {
