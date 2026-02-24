@@ -31,13 +31,14 @@ class LedgerProvider extends ChangeNotifier {
     final start = DateTime(weekStart.year, weekStart.month, weekStart.day);
     final end = start.add(const Duration(days: 7));
     return _entries
-        .where((e) => !e.occurredAt.isBefore(start) && e.occurredAt.isBefore(end))
+        .where(
+          (e) => !e.occurredAt.isBefore(start) && e.occurredAt.isBefore(end),
+        )
         .toList();
   }
 
   /// Count of entries needing review action.
-  int get pendingReviewCount =>
-      _entries.where((e) => e.isActionable).length;
+  int get pendingReviewCount => _entries.where((e) => e.isActionable).length;
 
   /// Confirmed entries.
   List<CareEntry> get confirmedEntries =>
@@ -92,7 +93,7 @@ class LedgerProvider extends ChangeNotifier {
   /// Add a new care entry.
   Future<void> addEntry({
     required EntryCategory category,
-    required String description,
+    String? description,
     required double creditsProposed,
     required DateTime occurredAt,
     required String authorId,
@@ -107,7 +108,7 @@ class LedgerProvider extends ChangeNotifier {
         ledgerId: _activeLedger!.id,
         authorId: authorId,
         category: category,
-        description: description,
+        description: description ?? category.label,
         creditsProposed: creditsProposed,
         occurredAt: occurredAt,
         durationMinutes: durationMinutes,
@@ -115,6 +116,47 @@ class LedgerProvider extends ChangeNotifier {
         sourceHint: sourceHint,
       );
       _entries.insert(0, entry);
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Update an existing care entry.
+  Future<void> updateEntry({
+    required String entryId,
+    EntryCategory? category,
+    String? description,
+    double? creditsProposed,
+    DateTime? occurredAt,
+    int? durationMinutes,
+  }) async {
+    try {
+      final updated = await _service.editEntry(
+        entryId: entryId,
+        category: category,
+        description: description,
+        creditsProposed: creditsProposed,
+        occurredAt: occurredAt,
+        durationMinutes: durationMinutes,
+      );
+      final index = _entries.indexWhere((e) => e.id == entryId);
+      if (index >= 0) {
+        _entries[index] = updated;
+      }
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Delete a care entry.
+  Future<void> deleteEntry(String entryId) async {
+    try {
+      await _service.deleteEntry(entryId);
+      _entries.removeWhere((e) => e.id == entryId);
       notifyListeners();
     } catch (e) {
       _error = e.toString();

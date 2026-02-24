@@ -32,6 +32,5 @@ class EntryReview {
   });
 
   @override
-  String toString() =>
-      'EntryReview($id, entry=$entryId, ${decision.label})';
+  String toString() => 'EntryReview($id, entry=$entryId, ${decision.label})';
 }

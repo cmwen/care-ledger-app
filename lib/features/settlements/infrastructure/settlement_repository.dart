@@ -27,16 +27,12 @@ class InMemorySettlementRepository implements SettlementRepository {
 
   @override
   Future<List<Settlement>> getByLedgerId(String ledgerId) async =>
-      _store.values
-          .where((s) => s.ledgerId == ledgerId)
-          .toList()
+      _store.values.where((s) => s.ledgerId == ledgerId).toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
   @override
   Future<List<Settlement>> getOpenByLedgerId(String ledgerId) async =>
-      _store.values
-          .where((s) => s.ledgerId == ledgerId && s.isOpen)
-          .toList()
+      _store.values.where((s) => s.ledgerId == ledgerId && s.isOpen).toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
   @override

@@ -4,6 +4,8 @@ import 'package:care_ledger_app/features/ledger/presentation/ledger_provider.dar
 import 'package:care_ledger_app/features/ledger/presentation/widgets/week_summary_card.dart';
 import 'package:care_ledger_app/features/ledger/presentation/widgets/entry_card.dart';
 import 'package:care_ledger_app/features/ledger/presentation/widgets/quick_add_sheet.dart';
+import 'package:care_ledger_app/features/ledger/presentation/widgets/edit_entry_sheet.dart';
+import 'package:care_ledger_app/features/ledger/domain/care_entry.dart';
 
 /// Ledger Home screen — the primary tab.
 ///
@@ -65,7 +67,11 @@ class LedgerScreen extends StatelessWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.note_add_outlined, size: 64, color: Colors.grey),
+                          Icon(
+                            Icons.note_add_outlined,
+                            size: 64,
+                            color: Colors.grey,
+                          ),
                           SizedBox(height: 16),
                           Text(
                             'No entries yet',
@@ -88,7 +94,11 @@ class LedgerScreen extends StatelessWidget {
                           horizontal: 16,
                           vertical: 4,
                         ),
-                        child: EntryCard(entry: allEntries[index]),
+                        child: EntryCard(
+                          entry: allEntries[index],
+                          onTap: () =>
+                              _showEditEntry(context, allEntries[index]),
+                        ),
                       ),
                       childCount: allEntries.length,
                     ),
@@ -135,10 +145,10 @@ class LedgerScreen extends StatelessWidget {
               onPressed: () {
                 // For MVP, create a default ledger
                 context.read<LedgerProvider>().createLedger(
-                      title: 'Family Care Ledger',
-                      participantAId: 'participant-a',
-                      participantBId: 'participant-b',
-                    );
+                  title: 'Family Care Ledger',
+                  participantAId: 'participant-a',
+                  participantBId: 'participant-b',
+                );
               },
               icon: const Icon(Icons.add),
               label: const Text('Create Ledger'),
@@ -156,5 +166,18 @@ class LedgerScreen extends StatelessWidget {
       useSafeArea: true,
       builder: (_) => const QuickAddSheet(),
     );
+  }
+
+  void _showEditEntry(BuildContext context, CareEntry entry) {
+    // Only allow editing entries that are in editable states
+    if (entry.status == EntryStatus.needsReview ||
+        entry.status == EntryStatus.needsEdit) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        builder: (_) => EditEntrySheet(entry: entry),
+      );
+    }
   }
 }

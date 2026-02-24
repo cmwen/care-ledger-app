@@ -41,8 +41,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
           body: Column(
             children: [
               // Bulk action bar (when multi-selecting)
-              if (_isMultiSelect)
-                _buildBulkActionBar(context, provider),
+              if (_isMultiSelect) _buildBulkActionBar(context, provider),
 
               Expanded(
                 child: ListView.builder(
@@ -81,17 +80,13 @@ class _ReviewScreenState extends State<ReviewScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.inbox_outlined,
-              size: 80,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.inbox_outlined, size: 80, color: Colors.grey[400]),
             const SizedBox(height: 24),
             Text(
               'Nothing to review this week',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.grey,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: Colors.grey),
             ),
             const SizedBox(height: 12),
             const Text(
@@ -160,9 +155,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             DateFormat.yMMMEd().format(day),
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Colors.grey[600],
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(color: Colors.grey[600]),
           ),
         ),
         ...entries.map(
@@ -184,8 +179,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     }
                   : null,
               onApprove: () => _approveEntry(context, entry, provider),
-              onReject: () =>
-                  _showRejectDialog(context, entry, provider),
+              onReject: () => _showRejectDialog(context, entry, provider),
               onRequestEdit: () =>
                   _showEditRequestDialog(context, entry, provider),
             ),
@@ -299,10 +293,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     );
   }
 
-  void _showBulkRejectDialog(
-    BuildContext context,
-    ReviewProvider provider,
-  ) {
+  void _showBulkRejectDialog(BuildContext context, ReviewProvider provider) {
     final controller = TextEditingController();
     showDialog(
       context: context,

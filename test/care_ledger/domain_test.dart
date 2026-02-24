@@ -8,8 +8,9 @@ void main() {
   group('EntryStatus transitions', () {
     test('needsReview can transition to pendingCounterpartyReview', () {
       expect(
-        EntryStatus.needsReview
-            .canTransitionTo(EntryStatus.pendingCounterpartyReview),
+        EntryStatus.needsReview.canTransitionTo(
+          EntryStatus.pendingCounterpartyReview,
+        ),
         isTrue,
       );
     });
@@ -30,24 +31,27 @@ void main() {
 
     test('pendingCounterpartyReview can transition to confirmed', () {
       expect(
-        EntryStatus.pendingCounterpartyReview
-            .canTransitionTo(EntryStatus.confirmed),
+        EntryStatus.pendingCounterpartyReview.canTransitionTo(
+          EntryStatus.confirmed,
+        ),
         isTrue,
       );
     });
 
     test('pendingCounterpartyReview can transition to needsEdit', () {
       expect(
-        EntryStatus.pendingCounterpartyReview
-            .canTransitionTo(EntryStatus.needsEdit),
+        EntryStatus.pendingCounterpartyReview.canTransitionTo(
+          EntryStatus.needsEdit,
+        ),
         isTrue,
       );
     });
 
     test('needsEdit can transition to pendingCounterpartyReview', () {
       expect(
-        EntryStatus.needsEdit
-            .canTransitionTo(EntryStatus.pendingCounterpartyReview),
+        EntryStatus.needsEdit.canTransitionTo(
+          EntryStatus.pendingCounterpartyReview,
+        ),
         isTrue,
       );
     });
@@ -79,10 +83,7 @@ void main() {
     });
 
     test('otherParticipant throws for unknown participant', () {
-      expect(
-        () => ledger.otherParticipant('user-c'),
-        throwsArgumentError,
-      );
+      expect(() => ledger.otherParticipant('user-c'), throwsArgumentError);
     });
 
     test('isParticipant returns true for valid participants', () {
@@ -209,13 +210,11 @@ void main() {
 
     test('proposed can transition to accepted or rejected', () {
       expect(
-        SettlementStatus.proposed
-            .canTransitionTo(SettlementStatus.accepted),
+        SettlementStatus.proposed.canTransitionTo(SettlementStatus.accepted),
         isTrue,
       );
       expect(
-        SettlementStatus.proposed
-            .canTransitionTo(SettlementStatus.rejected),
+        SettlementStatus.proposed.canTransitionTo(SettlementStatus.rejected),
         isTrue,
       );
     });

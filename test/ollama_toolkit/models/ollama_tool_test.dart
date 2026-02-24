@@ -25,18 +25,12 @@ void main() {
         final parameters = {
           'type': 'object',
           'properties': {
-            'location': {
-              'type': 'string',
-              'description': 'City name',
-            },
+            'location': {'type': 'string', 'description': 'City name'},
             'units': {
               'type': 'string',
               'enum': ['celsius', 'fahrenheit'],
             },
-            'date': {
-              'type': 'string',
-              'format': 'date',
-            },
+            'date': {'type': 'string', 'format': 'date'},
           },
           'required': ['location'],
         };
@@ -47,7 +41,10 @@ void main() {
         );
 
         expect(tool.parameters['properties']['location']['type'], 'string');
-        expect(tool.parameters['properties']['units']['enum'], ['celsius', 'fahrenheit']);
+        expect(tool.parameters['properties']['units']['enum'], [
+          'celsius',
+          'fahrenheit',
+        ]);
         expect(tool.parameters['required'], ['location']);
       });
     });
@@ -134,7 +131,11 @@ void main() {
         };
         final tool = ToolDefinition.fromJson(json);
 
-        expect(tool.parameters['properties']['param1']['enum'], ['a', 'b', 'c']);
+        expect(tool.parameters['properties']['param1']['enum'], [
+          'a',
+          'b',
+          'c',
+        ]);
         expect(tool.parameters['required'], ['param1']);
       });
 

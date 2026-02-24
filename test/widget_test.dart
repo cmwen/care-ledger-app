@@ -17,9 +17,12 @@ import 'package:care_ledger_app/features/settlements/application/settlement_serv
 import 'package:care_ledger_app/features/ledger/presentation/ledger_provider.dart';
 import 'package:care_ledger_app/features/reviews/presentation/review_provider.dart';
 import 'package:care_ledger_app/features/balance/presentation/balance_provider.dart';
+import 'package:care_ledger_app/features/settings/presentation/settings_provider.dart';
 
 void main() {
-  testWidgets('App loads and shows navigation bar', (WidgetTester tester) async {
+  testWidgets('App loads and shows navigation bar', (
+    WidgetTester tester,
+  ) async {
     // Set up dependencies
     final ledgerRepo = InMemoryLedgerRepository();
     final entryRepo = InMemoryCareEntryRepository();
@@ -38,13 +41,12 @@ void main() {
       entryRepo: entryRepo,
       settlementRepo: settlementRepo,
     );
-    final settlementService = SettlementService(
-      settlementRepo: settlementRepo,
-    );
+    final settlementService = SettlementService(settlementRepo: settlementRepo);
 
     await tester.pumpWidget(
       MultiProvider(
         providers: [
+          ChangeNotifierProvider(create: (_) => SettingsProvider()),
           ChangeNotifierProvider(
             create: (_) => LedgerProvider(service: ledgerService),
           ),

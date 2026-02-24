@@ -18,14 +18,11 @@ class InMemorySyncEventRepository implements SyncEventRepository {
 
   @override
   Future<List<SyncEvent>> getByLedgerId(String ledgerId) async =>
-      _store
-          .where((e) => e.ledgerId == ledgerId)
-          .toList()
-        ..sort((a, b) {
-          final cmp = a.lamport.compareTo(b.lamport);
-          if (cmp != 0) return cmp;
-          return a.actorId.compareTo(b.actorId);
-        });
+      _store.where((e) => e.ledgerId == ledgerId).toList()..sort((a, b) {
+        final cmp = a.lamport.compareTo(b.lamport);
+        if (cmp != 0) return cmp;
+        return a.actorId.compareTo(b.actorId);
+      });
 
   @override
   Future<List<SyncEvent>> getSince(String ledgerId, int sinceLamport) async =>

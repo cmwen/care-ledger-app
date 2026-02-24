@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:care_ledger_app/features/ledger/domain/care_entry.dart';
+import 'package:care_ledger_app/features/settings/presentation/settings_provider.dart';
 
 /// Card displaying a single care entry in the ledger list.
 class EntryCard extends StatelessWidget {
@@ -12,15 +14,13 @@ class EntryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final settings = context.watch<SettingsProvider>();
 
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: theme.colorScheme.outlineVariant,
-          width: 0.5,
-        ),
+        side: BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5),
       ),
       child: InkWell(
         onTap: onTap,
@@ -59,17 +59,32 @@ class EntryCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Text(
-                          entry.category.label,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.grey,
+                        // Author avatar
+                        CircleAvatar(
+                          radius: 8,
+                          backgroundColor:
+                              theme.colorScheme.surfaceContainerHighest,
+                          child: Text(
+                            settings
+                                .participantName(entry.authorId)
+                                .substring(0, 1)
+                                .toUpperCase(),
+                            style: const TextStyle(fontSize: 8),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            settings.participantName(entry.authorId),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.grey,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          '·',
-                          style: TextStyle(color: Colors.grey[400]),
-                        ),
+                        Text('·', style: TextStyle(color: Colors.grey[400])),
                         const SizedBox(width: 8),
                         Text(
                           DateFormat.MMMd().format(entry.occurredAt),
@@ -77,6 +92,21 @@ class EntryCard extends StatelessWidget {
                             color: Colors.grey,
                           ),
                         ),
+                        if (entry.durationMinutes != null) ...[
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.timer_outlined,
+                            size: 12,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${entry.durationMinutes}m',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
                         if (entry.sourceType != SourceType.manual) ...[
                           const SizedBox(width: 8),
                           Icon(
@@ -179,11 +209,7 @@ class _StatusChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            _statusIcon(status),
-            size: 12,
-            color: _statusColor(status),
-          ),
+          Icon(_statusIcon(status), size: 12, color: _statusColor(status)),
           const SizedBox(width: 4),
           Text(
             status.label,

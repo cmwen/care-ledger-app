@@ -20,7 +20,10 @@ class WeekSummaryCard extends StatelessWidget {
     final confirmedCount = weekEntries.where((e) => e.isConfirmed).length;
     final totalCredits = weekEntries
         .where((e) => e.isConfirmed)
-        .fold<double>(0, (sum, e) => sum + (e.creditsConfirmed ?? e.creditsProposed));
+        .fold<double>(
+          0,
+          (sum, e) => sum + (e.creditsConfirmed ?? e.creditsProposed),
+        );
 
     return Card(
       elevation: 0,
@@ -71,7 +74,10 @@ class WeekSummaryCard extends StatelessWidget {
             if (pendingReviewCount > 0) ...[
               const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.tertiaryContainer,
                   borderRadius: BorderRadius.circular(20),
@@ -116,7 +122,9 @@ class _StatItem extends StatelessWidget {
             Text(
               label,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+                color: theme.colorScheme.onPrimaryContainer.withValues(
+                  alpha: 0.7,
+                ),
               ),
             ),
           ],
