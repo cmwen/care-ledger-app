@@ -158,6 +158,16 @@ class LedgerService {
   ) =>
       _entryRepo.getByDateRange(ledgerId, start, end);
 
+  /// Delete a care entry.
+  Future<void> deleteEntry(String entryId) async {
+    final entry = await _entryRepo.getById(entryId);
+    if (entry == null) throw StateError('Entry not found: $entryId');
+    if (entry.isConfirmed) {
+      throw StateError('Cannot delete a confirmed entry');
+    }
+    await _entryRepo.delete(entryId);
+  }
+
   /// Get the count of entries needing review action.
   Future<int> getPendingReviewCount(String ledgerId) async {
     final queue = await _entryRepo.getReviewQueue(ledgerId);

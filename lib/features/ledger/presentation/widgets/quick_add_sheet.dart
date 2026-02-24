@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:care_ledger_app/features/ledger/domain/care_entry.dart';
 import 'package:care_ledger_app/features/ledger/presentation/ledger_provider.dart';
+import 'package:care_ledger_app/features/settings/presentation/settings_provider.dart';
 
 /// Bottom sheet for quick entry creation.
 ///
 /// UX target: common add-entry flow under 20 seconds.
-/// Uses category chips, description, datetime, and credits fields.
+/// Uses category chips, optional description, datetime, credits, and author fields.
 class QuickAddSheet extends StatefulWidget {
   const QuickAddSheet({super.key});
 
@@ -19,7 +20,16 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
   final _descriptionController = TextEditingController();
   final _creditsController = TextEditingController(text: '1.0');
   DateTime _occurredAt = DateTime.now();
+  TimeOfDay _occurredTime = TimeOfDay.now();
+  late String _selectedAuthorId;
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedAuthorId =
+        context.read<SettingsProvider>().currentUserId;
+  }
 
   @override
   void dispose() {
@@ -31,6 +41,8 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final settings = context.watch<SettingsProvider>();
+    final ledgerProvider = context.read<LedgerProvider>();
 
     return Padding(
       padding: EdgeInsets.only(
@@ -56,37 +68,78 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
           ),
           const SizedBox(height: 16),
 
+          // Author selection
+          if (ledgerProvider.hasLedger) ...[
+            Text('Author', style: theme.textTheme.labelLarge),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: settings.participantList.map((p) {
+                final isSelected = p.id == _selectedAuthorId;
+                return ChoiceChip(
+                  selected: isSelected,
+                  avatar: CircleAvatar(
+                    radius: 12,
+                    backgroundColor: isSelected
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.surfaceContainerHighest,
+                    child: Text(
+                      p.initial,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isSelected
+                            ? theme.colorScheme.onPrimary
+                            : theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  label: Text(p.name),
+                  onSelected: (_) =>
+                      setState(() => _selectedAuthorId = p.id),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+          ],
+
           // Category chips
           Text('Category', style: theme.textTheme.labelLarge),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: EntryCategory.values.map((cat) {
-              final isSelected = cat == _selectedCategory;
-              return FilterChip(
-                selected: isSelected,
-                label: Text(cat.label),
-                onSelected: (_) => setState(() => _selectedCategory = cat),
-              );
-            }).toList(),
+          SizedBox(
+            height: 40,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: EntryCategory.values.map((cat) {
+                final isSelected = cat == _selectedCategory;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: FilterChip(
+                    selected: isSelected,
+                    label: Text(cat.label),
+                    onSelected: (_) =>
+                        setState(() => _selectedCategory = cat),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
           const SizedBox(height: 16),
 
-          // Description
+          // Description (optional)
           TextField(
             controller: _descriptionController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Description',
-              hintText: 'What did you do?',
-              border: OutlineInputBorder(),
+              hintText: 'What did you do? (optional)',
+              helperText: 'Leave blank to use "${_selectedCategory.label}"',
+              border: const OutlineInputBorder(),
             ),
             textCapitalization: TextCapitalization.sentences,
             maxLines: 2,
           ),
           const SizedBox(height: 16),
 
-          // Credits + Date row
+          // Credits + Date + Time row
           Row(
             children: [
               Expanded(
@@ -102,7 +155,7 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: InkWell(
                   onTap: _pickDate,
@@ -114,9 +167,31 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
                     child: Row(
                       children: [
                         const Icon(Icons.calendar_today, size: 16),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 4),
                         Text(
                           '${_occurredAt.month}/${_occurredAt.day}',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: InkWell(
+                  onTap: _pickTime,
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Time',
+                      border: OutlineInputBorder(),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.access_time, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          _occurredTime.format(context),
                           style: theme.textTheme.bodyMedium,
                         ),
                       ],
@@ -161,15 +236,17 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
     }
   }
 
-  Future<void> _submit() async {
-    final description = _descriptionController.text.trim();
-    if (description.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a description')),
-      );
-      return;
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _occurredTime,
+    );
+    if (picked != null) {
+      setState(() => _occurredTime = picked);
     }
+  }
 
+  Future<void> _submit() async {
     final credits = double.tryParse(_creditsController.text);
     if (credits == null || credits < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -180,14 +257,22 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
 
     setState(() => _isSubmitting = true);
 
+    final description = _descriptionController.text.trim();
+    final occurredAt = DateTime(
+      _occurredAt.year,
+      _occurredAt.month,
+      _occurredAt.day,
+      _occurredTime.hour,
+      _occurredTime.minute,
+    );
+
     final provider = context.read<LedgerProvider>();
     await provider.addEntry(
       category: _selectedCategory,
-      description: description,
+      description: description.isNotEmpty ? description : null,
       creditsProposed: credits,
-      occurredAt: _occurredAt,
-      // MVP: default to participant A as current user
-      authorId: provider.activeLedger!.participantAId,
+      occurredAt: occurredAt,
+      authorId: _selectedAuthorId,
     );
 
     if (mounted) {

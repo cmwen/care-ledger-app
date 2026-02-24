@@ -17,6 +17,7 @@ import 'package:care_ledger_app/features/settlements/application/settlement_serv
 import 'package:care_ledger_app/features/ledger/presentation/ledger_provider.dart';
 import 'package:care_ledger_app/features/reviews/presentation/review_provider.dart';
 import 'package:care_ledger_app/features/balance/presentation/balance_provider.dart';
+import 'package:care_ledger_app/features/settings/presentation/settings_provider.dart';
 
 void main() {
   testWidgets('App loads and shows navigation bar', (WidgetTester tester) async {
@@ -45,6 +46,7 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
+          ChangeNotifierProvider(create: (_) => SettingsProvider()),
           ChangeNotifierProvider(
             create: (_) => LedgerProvider(service: ledgerService),
           ),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'package:care_ledger_app/app/theme.dart';
 import 'package:care_ledger_app/app/navigation_shell.dart';
 import 'package:care_ledger_app/data/seed_data.dart';
+import 'package:care_ledger_app/l10n/app_localizations.dart';
 
 // Repositories
 import 'package:care_ledger_app/features/ledger/infrastructure/ledger_repository.dart';
@@ -21,6 +23,7 @@ import 'package:care_ledger_app/features/settlements/application/settlement_serv
 import 'package:care_ledger_app/features/ledger/presentation/ledger_provider.dart';
 import 'package:care_ledger_app/features/reviews/presentation/review_provider.dart';
 import 'package:care_ledger_app/features/balance/presentation/balance_provider.dart';
+import 'package:care_ledger_app/features/settings/presentation/settings_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,6 +61,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(
           create: (_) => LedgerProvider(service: ledgerService),
         ),
@@ -82,11 +86,22 @@ class CareLedgerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
+
     return MaterialApp(
       title: 'Care Ledger',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
+      themeMode: settings.themeMode,
+      locale: settings.locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: const NavigationShell(),
     );
   }
