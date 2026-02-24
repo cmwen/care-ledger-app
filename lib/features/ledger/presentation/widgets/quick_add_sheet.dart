@@ -27,8 +27,7 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
   @override
   void initState() {
     super.initState();
-    _selectedAuthorId =
-        context.read<SettingsProvider>().currentUserId;
+    _selectedAuthorId = context.read<SettingsProvider>().currentUserId;
   }
 
   @override
@@ -94,8 +93,7 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
                     ),
                   ),
                   label: Text(p.name),
-                  onSelected: (_) =>
-                      setState(() => _selectedAuthorId = p.id),
+                  onSelected: (_) => setState(() => _selectedAuthorId = p.id),
                 );
               }).toList(),
             ),
@@ -116,8 +114,7 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
                   child: FilterChip(
                     selected: isSelected,
                     label: Text(cat.label),
-                    onSelected: (_) =>
-                        setState(() => _selectedCategory = cat),
+                    onSelected: (_) => setState(() => _selectedCategory = cat),
                   ),
                 );
               }).toList(),

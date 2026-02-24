@@ -37,9 +37,7 @@ class InMemoryCareEntryRepository implements CareEntryRepository {
 
   @override
   Future<List<CareEntry>> getByLedgerId(String ledgerId) async =>
-      _store.values
-          .where((e) => e.ledgerId == ledgerId)
-          .toList()
+      _store.values.where((e) => e.ledgerId == ledgerId).toList()
         ..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
 
   @override

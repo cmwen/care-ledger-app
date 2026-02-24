@@ -289,13 +289,10 @@ void main() {
         expect(families, contains('qwen'));
         expect(families, contains('mistral'));
         // Check that list is sorted
-        final isSorted = families
-            .asMap()
-            .entries
-            .every((entry) {
-              if (entry.key == families.length - 1) return true;
-              return entry.value.compareTo(families[entry.key + 1]) <= 0;
-            });
+        final isSorted = families.asMap().entries.every((entry) {
+          if (entry.key == families.length - 1) return true;
+          return entry.value.compareTo(families[entry.key + 1]) <= 0;
+        });
         expect(isSorted, true);
       });
 

@@ -67,7 +67,11 @@ class LedgerScreen extends StatelessWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.note_add_outlined, size: 64, color: Colors.grey),
+                          Icon(
+                            Icons.note_add_outlined,
+                            size: 64,
+                            color: Colors.grey,
+                          ),
                           SizedBox(height: 16),
                           Text(
                             'No entries yet',
@@ -92,10 +96,8 @@ class LedgerScreen extends StatelessWidget {
                         ),
                         child: EntryCard(
                           entry: allEntries[index],
-                          onTap: () => _showEditEntry(
-                            context,
-                            allEntries[index],
-                          ),
+                          onTap: () =>
+                              _showEditEntry(context, allEntries[index]),
                         ),
                       ),
                       childCount: allEntries.length,
@@ -143,10 +145,10 @@ class LedgerScreen extends StatelessWidget {
               onPressed: () {
                 // For MVP, create a default ledger
                 context.read<LedgerProvider>().createLedger(
-                      title: 'Family Care Ledger',
-                      participantAId: 'participant-a',
-                      participantBId: 'participant-b',
-                    );
+                  title: 'Family Care Ledger',
+                  participantAId: 'participant-a',
+                  participantBId: 'participant-b',
+                );
               },
               icon: const Icon(Icons.add),
               label: const Text('Create Ledger'),

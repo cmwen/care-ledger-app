@@ -31,13 +31,14 @@ class LedgerProvider extends ChangeNotifier {
     final start = DateTime(weekStart.year, weekStart.month, weekStart.day);
     final end = start.add(const Duration(days: 7));
     return _entries
-        .where((e) => !e.occurredAt.isBefore(start) && e.occurredAt.isBefore(end))
+        .where(
+          (e) => !e.occurredAt.isBefore(start) && e.occurredAt.isBefore(end),
+        )
         .toList();
   }
 
   /// Count of entries needing review action.
-  int get pendingReviewCount =>
-      _entries.where((e) => e.isActionable).length;
+  int get pendingReviewCount => _entries.where((e) => e.isActionable).length;
 
   /// Confirmed entries.
   List<CareEntry> get confirmedEntries =>

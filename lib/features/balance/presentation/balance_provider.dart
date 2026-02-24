@@ -20,8 +20,8 @@ class BalanceProvider extends ChangeNotifier {
   BalanceProvider({
     required BalanceService balanceService,
     required SettlementService settlementService,
-  })  : _balanceService = balanceService,
-        _settlementService = settlementService;
+  }) : _balanceService = balanceService,
+       _settlementService = settlementService;
 
   // ── Getters ──
 
@@ -103,8 +103,9 @@ class BalanceProvider extends ChangeNotifier {
     required Ledger ledger,
   }) async {
     try {
-      final completed =
-          await _settlementService.completeSettlement(settlementId);
+      final completed = await _settlementService.completeSettlement(
+        settlementId,
+      );
       final index = _settlements.indexWhere((s) => s.id == settlementId);
       if (index >= 0) _settlements[index] = completed;
 

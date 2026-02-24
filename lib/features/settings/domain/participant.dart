@@ -11,10 +11,7 @@ class Participant {
   String get initial => name.isNotEmpty ? name[0].toUpperCase() : '?';
 
   Participant copyWith({String? id, String? name}) {
-    return Participant(
-      id: id ?? this.id,
-      name: name ?? this.name,
-    );
+    return Participant(id: id ?? this.id, name: name ?? this.name);
   }
 
   @override

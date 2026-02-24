@@ -51,28 +51,29 @@ class SettingsScreen extends StatelessWidget {
                           children: [
                             IconButton(
                               icon: const Icon(Icons.edit, size: 20),
-                              onPressed: () => _editParticipantName(
-                                  context, p, settings),
+                              onPressed: () =>
+                                  _editParticipantName(context, p, settings),
                             ),
                             if (!isCurrentUser &&
                                 settings.participantList.length > 2)
                               IconButton(
-                                icon: const Icon(Icons.remove_circle_outline,
-                                    size: 20, color: Colors.red),
+                                icon: const Icon(
+                                  Icons.remove_circle_outline,
+                                  size: 20,
+                                  color: Colors.red,
+                                ),
                                 onPressed: () =>
                                     settings.removeParticipant(p.id),
                               ),
                           ],
                         ),
                         contentPadding: EdgeInsets.zero,
-                        onTap: () => _editParticipantName(
-                            context, p, settings),
+                        onTap: () => _editParticipantName(context, p, settings),
                       );
                     }),
                     const SizedBox(height: 8),
                     OutlinedButton.icon(
-                      onPressed: () =>
-                          _addParticipant(context, settings),
+                      onPressed: () => _addParticipant(context, settings),
                       icon: const Icon(Icons.person_add, size: 18),
                       label: const Text('Add Participant'),
                     ),
@@ -97,8 +98,7 @@ class SettingsScreen extends StatelessWidget {
                       subtitle: Text(_localeName(settings.locale)),
                       trailing: const Icon(Icons.chevron_right),
                       contentPadding: EdgeInsets.zero,
-                      onTap: () =>
-                          _showLanguagePicker(context, settings),
+                      onTap: () => _showLanguagePicker(context, settings),
                     ),
                     const Divider(),
                     // Theme selection
@@ -108,8 +108,7 @@ class SettingsScreen extends StatelessWidget {
                       subtitle: Text(_themeModeName(settings.themeMode)),
                       trailing: const Icon(Icons.chevron_right),
                       contentPadding: EdgeInsets.zero,
-                      onTap: () =>
-                          _showThemePicker(context, settings),
+                      onTap: () => _showThemePicker(context, settings),
                     ),
                   ],
                 ),
@@ -251,10 +250,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _addParticipant(
-    BuildContext context,
-    SettingsProvider settings,
-  ) {
+  void _addParticipant(BuildContext context, SettingsProvider settings) {
     final controller = TextEditingController();
     showDialog(
       context: context,
@@ -280,10 +276,7 @@ class SettingsScreen extends StatelessWidget {
               final name = controller.text.trim();
               if (name.isNotEmpty) {
                 settings.addParticipant(
-                  Participant(
-                    id: IdGenerator.generate(),
-                    name: name,
-                  ),
+                  Participant(id: IdGenerator.generate(), name: name),
                 );
               }
               Navigator.pop(ctx);
@@ -295,10 +288,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showLanguagePicker(
-    BuildContext context,
-    SettingsProvider settings,
-  ) {
+  void _showLanguagePicker(BuildContext context, SettingsProvider settings) {
     showDialog(
       context: context,
       builder: (ctx) => SimpleDialog(
@@ -327,10 +317,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showThemePicker(
-    BuildContext context,
-    SettingsProvider settings,
-  ) {
+  void _showThemePicker(BuildContext context, SettingsProvider settings) {
     showDialog(
       context: context,
       builder: (ctx) => SimpleDialog(
@@ -422,9 +409,9 @@ class _SectionHeader extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             title,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Colors.grey[600],
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(color: Colors.grey[600]),
           ),
         ],
       ),
@@ -479,9 +466,9 @@ class _InfoRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
           ),
           Text(value, style: Theme.of(context).textTheme.bodyMedium),
         ],

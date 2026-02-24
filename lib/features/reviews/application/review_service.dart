@@ -17,8 +17,8 @@ class ReviewService {
   ReviewService({
     required CareEntryRepository entryRepo,
     required ReviewRepository reviewRepo,
-  })  : _entryRepo = entryRepo,
-        _reviewRepo = reviewRepo;
+  }) : _entryRepo = entryRepo,
+       _reviewRepo = reviewRepo;
 
   /// Get the review queue for a ledger (entries needing action).
   Future<List<CareEntry>> getReviewQueue(String ledgerId) =>
@@ -72,8 +72,9 @@ class ReviewService {
     // Update entry status
     final updatedEntry = entry.copyWith(
       status: targetStatus,
-      creditsConfirmed:
-          decision == ReviewDecision.approved ? entry.creditsProposed : null,
+      creditsConfirmed: decision == ReviewDecision.approved
+          ? entry.creditsProposed
+          : null,
       updatedAt: DateTime.now(),
     );
     await _entryRepo.save(updatedEntry);

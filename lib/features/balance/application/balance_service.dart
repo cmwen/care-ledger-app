@@ -14,8 +14,8 @@ class BalanceService {
   BalanceService({
     required CareEntryRepository entryRepo,
     required SettlementRepository settlementRepo,
-  })  : _entryRepo = entryRepo,
-        _settlementRepo = settlementRepo;
+  }) : _entryRepo = entryRepo,
+       _settlementRepo = settlementRepo;
 
   /// Compute the full balance for a ledger.
   Future<LedgerBalance> calculateBalance(Ledger ledger) async {

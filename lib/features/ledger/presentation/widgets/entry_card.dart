@@ -20,10 +20,7 @@ class EntryCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: theme.colorScheme.outlineVariant,
-          width: 0.5,
-        ),
+        side: BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5),
       ),
       child: InkWell(
         onTap: onTap,
@@ -87,10 +84,7 @@ class EntryCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          '·',
-                          style: TextStyle(color: Colors.grey[400]),
-                        ),
+                        Text('·', style: TextStyle(color: Colors.grey[400])),
                         const SizedBox(width: 8),
                         Text(
                           DateFormat.MMMd().format(entry.occurredAt),
@@ -100,8 +94,11 @@ class EntryCard extends StatelessWidget {
                         ),
                         if (entry.durationMinutes != null) ...[
                           const SizedBox(width: 8),
-                          Icon(Icons.timer_outlined,
-                              size: 12, color: Colors.grey[400]),
+                          Icon(
+                            Icons.timer_outlined,
+                            size: 12,
+                            color: Colors.grey[400],
+                          ),
                           const SizedBox(width: 2),
                           Text(
                             '${entry.durationMinutes}m',
@@ -212,11 +209,7 @@ class _StatusChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            _statusIcon(status),
-            size: 12,
-            color: _statusColor(status),
-          ),
+          Icon(_statusIcon(status), size: 12, color: _statusColor(status)),
           const SizedBox(width: 4),
           Text(
             status.label,

@@ -120,10 +120,7 @@ void main() {
       });
 
       test('toJson omits empty images list', () {
-        final message = OllamaMessage.user(
-          'What is this?',
-          images: [],
-        );
+        final message = OllamaMessage.user('What is this?', images: []);
         final json = message.toJson();
 
         expect(json.containsKey('images'), false);
@@ -135,10 +132,7 @@ void main() {
           name: 'test',
           arguments: {'key': 'value'},
         );
-        final message = OllamaMessage.assistant(
-          'Test',
-          toolCalls: [toolCall],
-        );
+        final message = OllamaMessage.assistant('Test', toolCalls: [toolCall]);
         final json = message.toJson();
 
         expect(json['tool_calls'], isNotEmpty);
@@ -146,10 +140,7 @@ void main() {
       });
 
       test('toJson omits empty tool calls list', () {
-        final message = OllamaMessage.assistant(
-          'Test',
-          toolCalls: [],
-        );
+        final message = OllamaMessage.assistant('Test', toolCalls: []);
         final json = message.toJson();
 
         expect(json.containsKey('tool_calls'), false);
@@ -180,10 +171,7 @@ void main() {
 
     group('JSON deserialization', () {
       test('fromJson with minimal fields', () {
-        final json = {
-          'role': 'user',
-          'content': 'Hello',
-        };
+        final json = {'role': 'user', 'content': 'Hello'};
         final message = OllamaMessage.fromJson(json);
 
         expect(message.role, 'user');
@@ -193,10 +181,7 @@ void main() {
       });
 
       test('fromJson with empty content defaults to empty string', () {
-        final json = {
-          'role': 'user',
-          'content': null,
-        };
+        final json = {'role': 'user', 'content': null};
         final message = OllamaMessage.fromJson(json);
 
         expect(message.content, '');
@@ -222,7 +207,7 @@ void main() {
               'id': 'call-1',
               'name': 'test_tool',
               'arguments': {'param': 'value'},
-            }
+            },
           ],
         };
         final message = OllamaMessage.fromJson(json);
@@ -261,11 +246,7 @@ void main() {
         final original = OllamaMessage.assistant(
           'Test content',
           toolCalls: [
-            ToolCall(
-              id: 'call-1',
-              name: 'test',
-              arguments: {'key': 'value'},
-            ),
+            ToolCall(id: 'call-1', name: 'test', arguments: {'key': 'value'}),
           ],
           thinking: 'Some thoughts',
         );
@@ -328,10 +309,7 @@ void main() {
       test('ToolCall with complex nested arguments', () {
         final arguments = {
           'location': 'NYC',
-          'filter': {
-            'min_temp': 60,
-            'max_temp': 80,
-          },
+          'filter': {'min_temp': 60, 'max_temp': 80},
           'units': ['celsius', 'fahrenheit'],
         };
         final toolCall = ToolCall(
@@ -372,11 +350,7 @@ void main() {
       });
 
       test('toJson omits index when null', () {
-        final toolCall = ToolCall(
-          id: 'call-1',
-          name: 'test',
-          arguments: {},
-        );
+        final toolCall = ToolCall(id: 'call-1', name: 'test', arguments: {});
         final json = toolCall.toJson();
 
         expect(json.containsKey('index'), false);
@@ -398,20 +372,14 @@ void main() {
       });
 
       test('fromJson with missing id defaults to empty string', () {
-        final json = {
-          'name': 'test',
-          'arguments': {},
-        };
+        final json = {'name': 'test', 'arguments': {}};
         final toolCall = ToolCall.fromJson(json);
 
         expect(toolCall.id, '');
       });
 
       test('fromJson with missing name defaults to empty string', () {
-        final json = {
-          'id': 'call-1',
-          'arguments': {},
-        };
+        final json = {'id': 'call-1', 'arguments': {}};
         final toolCall = ToolCall.fromJson(json);
 
         expect(toolCall.name, '');
@@ -420,9 +388,7 @@ void main() {
       test('fromJson with function wrapper (alternative format)', () {
         final json = {
           'id': 'call-1',
-          'function': {
-            'name': 'test_tool',
-          },
+          'function': {'name': 'test_tool'},
           'arguments': {'key': 'value'},
         };
         final toolCall = ToolCall.fromJson(json);

@@ -22,8 +22,7 @@ class SettingsProvider extends ChangeNotifier {
 
   // ── Getters ──
 
-  Map<String, Participant> get participants =>
-      Map.unmodifiable(_participants);
+  Map<String, Participant> get participants => Map.unmodifiable(_participants);
 
   List<Participant> get participantList => _participants.values.toList();
 

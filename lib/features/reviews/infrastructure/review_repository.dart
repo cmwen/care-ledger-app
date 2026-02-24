@@ -18,19 +18,14 @@ class InMemoryReviewRepository implements ReviewRepository {
 
   @override
   Future<List<EntryReview>> getByEntryId(String entryId) async =>
-      _store.values
-          .where((r) => r.entryId == entryId)
-          .toList()
+      _store.values.where((r) => r.entryId == entryId).toList()
         ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
   @override
   Future<List<EntryReview>> getByReviewerId(String reviewerId) async =>
-      _store.values
-          .where((r) => r.reviewerId == reviewerId)
-          .toList()
+      _store.values.where((r) => r.reviewerId == reviewerId).toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
   @override
-  Future<void> save(EntryReview review) async =>
-      _store[review.id] = review;
+  Future<void> save(EntryReview review) async => _store[review.id] = review;
 }

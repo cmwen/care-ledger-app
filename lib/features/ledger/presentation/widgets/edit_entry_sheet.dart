@@ -26,8 +26,9 @@ class _EditEntrySheetState extends State<EditEntrySheet> {
   void initState() {
     super.initState();
     _selectedCategory = widget.entry.category;
-    _descriptionController =
-        TextEditingController(text: widget.entry.description);
+    _descriptionController = TextEditingController(
+      text: widget.entry.description,
+    );
     _creditsController = TextEditingController(
       text: widget.entry.creditsProposed.toStringAsFixed(1),
     );
@@ -83,10 +84,11 @@ class _EditEntrySheetState extends State<EditEntrySheet> {
               ),
               const SizedBox(width: 12),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: _statusColor(widget.entry.status).withValues(alpha: 0.12),
+                  color: _statusColor(
+                    widget.entry.status,
+                  ).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -115,8 +117,7 @@ class _EditEntrySheetState extends State<EditEntrySheet> {
                   child: FilterChip(
                     selected: isSelected,
                     label: Text(cat.label),
-                    onSelected: (_) =>
-                        setState(() => _selectedCategory = cat),
+                    onSelected: (_) => setState(() => _selectedCategory = cat),
                   ),
                 );
               }).toList(),
@@ -188,9 +189,7 @@ class _EditEntrySheetState extends State<EditEntrySheet> {
                   onPressed: _isSubmitting ? null : _delete,
                   icon: const Icon(Icons.delete_outline, size: 18),
                   label: const Text('Delete'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                  ),
+                  style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
                 ),
               const Spacer(),
               // Save button
@@ -241,7 +240,9 @@ class _EditEntrySheetState extends State<EditEntrySheet> {
     await provider.updateEntry(
       entryId: widget.entry.id,
       category: _selectedCategory,
-      description: description.isNotEmpty ? description : _selectedCategory.label,
+      description: description.isNotEmpty
+          ? description
+          : _selectedCategory.label,
       creditsProposed: credits,
       occurredAt: _occurredAt,
     );

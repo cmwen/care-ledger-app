@@ -12,7 +12,7 @@ class SettlementService {
   final SettlementRepository _settlementRepo;
 
   SettlementService({required SettlementRepository settlementRepo})
-      : _settlementRepo = settlementRepo;
+    : _settlementRepo = settlementRepo;
 
   /// Propose a new settlement.
   Future<Settlement> proposeSettlement({
@@ -52,8 +52,9 @@ class SettlementService {
       throw StateError('Settlement not found: $settlementId');
     }
 
-    final targetStatus =
-        accept ? SettlementStatus.accepted : SettlementStatus.rejected;
+    final targetStatus = accept
+        ? SettlementStatus.accepted
+        : SettlementStatus.rejected;
 
     if (!settlement.status.canTransitionTo(targetStatus)) {
       throw StateError(
@@ -78,8 +79,7 @@ class SettlementService {
       throw StateError('Settlement not found: $settlementId');
     }
 
-    if (!settlement.status
-        .canTransitionTo(SettlementStatus.completed)) {
+    if (!settlement.status.canTransitionTo(SettlementStatus.completed)) {
       throw StateError(
         'Cannot complete settlement in ${settlement.status.label} status',
       );
@@ -103,8 +103,7 @@ class SettlementService {
       throw StateError('Settlement not found: $settlementId');
     }
 
-    if (!settlement.status
-        .canTransitionTo(SettlementStatus.cancelled)) {
+    if (!settlement.status.canTransitionTo(SettlementStatus.cancelled)) {
       throw StateError(
         'Cannot cancel settlement in ${settlement.status.label} status',
       );

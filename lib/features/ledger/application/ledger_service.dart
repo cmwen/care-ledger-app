@@ -17,8 +17,8 @@ class LedgerService {
   LedgerService({
     required LedgerRepository ledgerRepo,
     required CareEntryRepository entryRepo,
-  })  : _ledgerRepo = ledgerRepo,
-        _entryRepo = entryRepo;
+  }) : _ledgerRepo = ledgerRepo,
+       _entryRepo = entryRepo;
 
   // ── Ledger operations ──
 
@@ -82,7 +82,9 @@ class LedgerService {
   }) async {
     final ledger = await _ledgerRepo.getById(ledgerId);
     if (ledger == null) throw StateError('Ledger not found: $ledgerId');
-    if (ledger.isArchived) throw StateError('Cannot add entries to archived ledger');
+    if (ledger.isArchived) {
+      throw StateError('Cannot add entries to archived ledger');
+    }
     if (!ledger.isParticipant(authorId)) {
       throw ArgumentError('$authorId is not a participant in ledger $ledgerId');
     }
@@ -124,7 +126,9 @@ class LedgerService {
     if (entry == null) throw StateError('Entry not found: $entryId');
     if (entry.status != EntryStatus.needsEdit &&
         entry.status != EntryStatus.needsReview) {
-      throw StateError('Entry cannot be edited in ${entry.status.label} status');
+      throw StateError(
+        'Entry cannot be edited in ${entry.status.label} status',
+      );
     }
 
     final updated = entry.copyWith(
@@ -155,8 +159,7 @@ class LedgerService {
     String ledgerId,
     DateTime start,
     DateTime end,
-  ) =>
-      _entryRepo.getByDateRange(ledgerId, start, end);
+  ) => _entryRepo.getByDateRange(ledgerId, start, end);
 
   /// Delete a care entry.
   Future<void> deleteEntry(String entryId) async {

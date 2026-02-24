@@ -16,10 +16,7 @@ class AppLocalizations {
   static const LocalizationsDelegate<AppLocalizations> delegate =
       _AppLocalizationsDelegate();
 
-  static const List<Locale> supportedLocales = [
-    Locale('en'),
-    Locale('zh'),
-  ];
+  static const List<Locale> supportedLocales = [Locale('en'), Locale('zh')];
 
   static final Map<String, Map<String, String>> _localizedValues = {
     'en': {

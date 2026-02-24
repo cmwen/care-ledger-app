@@ -122,10 +122,7 @@ void main() {
       final confirmed = entry.copyWith(status: EntryStatus.confirmed);
       await entryRepo.save(confirmed);
 
-      expect(
-        () => service.deleteEntry(entry.id),
-        throwsA(isA<StateError>()),
-      );
+      expect(() => service.deleteEntry(entry.id), throwsA(isA<StateError>()));
     });
 
     test('throws for non-existent entry', () {

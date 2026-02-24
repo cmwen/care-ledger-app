@@ -93,7 +93,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
                               children: [
                                 CircleAvatar(
                                   radius: 12,
-                                  child: Text(p.initial, style: const TextStyle(fontSize: 10)),
+                                  child: Text(
+                                    p.initial,
+                                    style: const TextStyle(fontSize: 10),
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(p.name),
@@ -111,8 +114,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
             // Stats bar
             if (entries.isNotEmpty)
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 child: _TimelineStats(entries: entries),
               ),
 
@@ -123,8 +128,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.timeline,
-                              size: 64, color: Colors.grey[400]),
+                          Icon(
+                            Icons.timeline,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             'No entries to show',
@@ -134,8 +142,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       ),
                     )
                   : _showWeekView
-                      ? _buildWeekView(context, entries)
-                      : _buildDayView(context, entries),
+                  ? _buildWeekView(context, entries)
+                  : _buildDayView(context, entries),
             ),
           ],
         );
@@ -170,8 +178,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
   Widget _buildWeekView(BuildContext context, List<CareEntry> entries) {
     final grouped = <DateTime, List<CareEntry>>{};
     for (final entry in entries) {
-      final weekStart = entry.occurredAt
-          .subtract(Duration(days: entry.occurredAt.weekday - 1));
+      final weekStart = entry.occurredAt.subtract(
+        Duration(days: entry.occurredAt.weekday - 1),
+      );
       final key = DateTime(weekStart.year, weekStart.month, weekStart.day);
       grouped.putIfAbsent(key, () => []).add(entry);
     }
@@ -189,8 +198,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
           0,
           (sum, e) => sum + e.creditsProposed,
         );
-        final confirmedCount =
-            weekEntries.where((e) => e.isConfirmed).length;
+        final confirmedCount = weekEntries.where((e) => e.isConfirmed).length;
 
         // Category breakdown
         final categoryCount = <EntryCategory, int>{};
@@ -208,8 +216,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.date_range,
-                        size: 18, color: Colors.grey[600]),
+                    Icon(Icons.date_range, size: 18, color: Colors.grey[600]),
                     const SizedBox(width: 8),
                     Text(
                       '${DateFormat.MMMd().format(weekStart)} – ${DateFormat.MMMd().format(weekEnd)}',
@@ -218,11 +225,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     const Spacer(),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primaryContainer,
+                        color: Theme.of(context).colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -230,9 +237,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onPrimaryContainer,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
                         ),
                       ),
                     ),
@@ -261,18 +268,21 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   children: categoryCount.entries.map((e) {
                     return Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: _categoryColor(e.key)
-                            .withValues(alpha: 0.12),
+                        color: _categoryColor(e.key).withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(_categoryIcon(e.key),
-                              size: 14,
-                              color: _categoryColor(e.key)),
+                          Icon(
+                            _categoryIcon(e.key),
+                            size: 14,
+                            color: _categoryColor(e.key),
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             '${e.key.label} ×${e.value}',
@@ -306,7 +316,9 @@ class _TimelineStats extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final totalCredits = entries.fold<double>(
-        0, (sum, e) => sum + e.creditsProposed);
+      0,
+      (sum, e) => sum + e.creditsProposed,
+    );
     final confirmedCount = entries.where((e) => e.isConfirmed).length;
     final pendingCount = entries.where((e) => e.isPending).length;
 
@@ -319,10 +331,7 @@ class _TimelineStats extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _MiniStat(
-            icon: Icons.list_alt,
-            label: '${entries.length} total',
-          ),
+          _MiniStat(icon: Icons.list_alt, label: '${entries.length} total'),
           _MiniStat(
             icon: Icons.check_circle_outline,
             label: '$confirmedCount confirmed',
@@ -378,8 +387,10 @@ class _TimelineDayGroup extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isToday = _isToday(day);
-    final totalCredits =
-        entries.fold<double>(0, (sum, e) => sum + e.creditsProposed);
+    final totalCredits = entries.fold<double>(
+      0,
+      (sum, e) => sum + e.creditsProposed,
+    );
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -390,8 +401,10 @@ class _TimelineDayGroup extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: isToday
                       ? theme.colorScheme.primary
@@ -477,8 +490,9 @@ class _TimelineItem extends StatelessWidget {
                   Expanded(
                     child: Container(
                       width: 2,
-                      color: theme.colorScheme.outlineVariant
-                          .withValues(alpha: 0.5),
+                      color: theme.colorScheme.outlineVariant.withValues(
+                        alpha: 0.5,
+                      ),
                     ),
                   ),
               ],
@@ -494,7 +508,9 @@ class _TimelineItem extends StatelessWidget {
                 color: theme.colorScheme.surfaceContainerLowest,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  color: theme.colorScheme.outlineVariant.withValues(
+                    alpha: 0.3,
+                  ),
                 ),
               ),
               child: Row(
@@ -536,23 +552,32 @@ class _TimelineItem extends StatelessWidget {
                               ),
                             ),
                             if (entry.durationMinutes != null) ...[
-                              Text(' · ',
-                                  style: TextStyle(color: Colors.grey[400])),
-                              Icon(Icons.timer_outlined,
-                                  size: 11, color: Colors.grey[400]),
+                              Text(
+                                ' · ',
+                                style: TextStyle(color: Colors.grey[400]),
+                              ),
+                              Icon(
+                                Icons.timer_outlined,
+                                size: 11,
+                                color: Colors.grey[400],
+                              ),
                               const SizedBox(width: 2),
                               Text(
                                 '${entry.durationMinutes}m',
-                                style: theme.textTheme.bodySmall
-                                    ?.copyWith(color: Colors.grey[500]),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.grey[500],
+                                ),
                               ),
                             ],
-                            Text(' · ',
-                                style: TextStyle(color: Colors.grey[400])),
+                            Text(
+                              ' · ',
+                              style: TextStyle(color: Colors.grey[400]),
+                            ),
                             Text(
                               DateFormat.jm().format(entry.occurredAt),
-                              style: theme.textTheme.bodySmall
-                                  ?.copyWith(color: Colors.grey[500]),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.grey[500],
+                              ),
                             ),
                           ],
                         ),

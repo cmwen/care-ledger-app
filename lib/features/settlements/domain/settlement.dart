@@ -112,6 +112,5 @@ class Settlement {
   }
 
   @override
-  String toString() =>
-      'Settlement($id, $credits credits, ${status.label})';
+  String toString() => 'Settlement($id, $credits credits, ${status.label})';
 }

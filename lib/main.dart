@@ -54,9 +54,7 @@ void main() async {
     entryRepo: entryRepo,
     settlementRepo: settlementRepo,
   );
-  final settlementService = SettlementService(
-    settlementRepo: settlementRepo,
-  );
+  final settlementService = SettlementService(settlementRepo: settlementRepo);
 
   runApp(
     MultiProvider(

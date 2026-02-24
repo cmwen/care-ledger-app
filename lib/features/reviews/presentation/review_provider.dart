@@ -132,10 +132,7 @@ class ReviewProvider extends ChangeNotifier {
     required String reviewerId,
   }) async {
     try {
-      await _service.batchApprove(
-        entryIds: entryIds,
-        reviewerId: reviewerId,
-      );
+      await _service.batchApprove(entryIds: entryIds, reviewerId: reviewerId);
       _reviewQueue.removeWhere((e) => entryIds.contains(e.id));
       notifyListeners();
     } catch (e) {

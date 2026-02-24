@@ -41,11 +41,7 @@ void main() {
 
     group('JSON deserialization', () {
       test('fromJson with minimal fields', () {
-        final json = {
-          'model': 'llama3.1',
-          'response': 'Hello',
-          'done': true,
-        };
+        final json = {'model': 'llama3.1', 'response': 'Hello', 'done': true};
         final response = OllamaGenerateResponse.fromJson(json);
 
         expect(response.model, 'llama3.1');
@@ -54,11 +50,7 @@ void main() {
       });
 
       test('fromJson with missing response defaults to empty string', () {
-        final json = {
-          'model': 'llama3.1',
-          'response': null,
-          'done': true,
-        };
+        final json = {'model': 'llama3.1', 'response': null, 'done': true};
         final response = OllamaGenerateResponse.fromJson(json);
 
         expect(response.response, '');
@@ -108,7 +100,10 @@ void main() {
         );
 
         expect(response.evalTime, isNotNull);
-        expect(response.evalTime!.inMicroseconds, 1000000); // 1 billion nanoseconds / 1000 = 1 million microseconds = 1 second
+        expect(
+          response.evalTime!.inMicroseconds,
+          1000000,
+        ); // 1 billion nanoseconds / 1000 = 1 million microseconds = 1 second
       });
 
       test('evalTime returns null when evalDuration is null', () {
@@ -197,10 +192,7 @@ void main() {
       test('fromJson with basic message', () {
         final json = {
           'model': 'llama3.1',
-          'message': {
-            'role': 'assistant',
-            'content': 'Hello!',
-          },
+          'message': {'role': 'assistant', 'content': 'Hello!'},
           'done': true,
         };
         final response = OllamaChatResponse.fromJson(json);
@@ -222,7 +214,7 @@ void main() {
                 'id': 'call-1',
                 'name': 'test_tool',
                 'arguments': {'param': 'value'},
-              }
+              },
             ],
           },
           'done': true,
@@ -236,10 +228,7 @@ void main() {
       test('fromJson with eval metrics', () {
         final json = {
           'model': 'test',
-          'message': {
-            'role': 'assistant',
-            'content': 'test',
-          },
+          'message': {'role': 'assistant', 'content': 'test'},
           'done': true,
           'eval_count': 200,
           'eval_duration': 3000000000,
@@ -323,9 +312,7 @@ void main() {
 
       test('fromJson with large vector', () {
         final embedding = List<double>.generate(256, (i) => i * 0.01);
-        final json = {
-          'embedding': embedding,
-        };
+        final json = {'embedding': embedding};
         final response = OllamaEmbeddingResponse.fromJson(json);
 
         expect(response.embedding.length, 256);
@@ -336,9 +323,7 @@ void main() {
 
     group('toString', () {
       test('shows embedding dimensions', () {
-        final response = OllamaEmbeddingResponse(
-          embedding: [0.1, 0.2, 0.3],
-        );
+        final response = OllamaEmbeddingResponse(embedding: [0.1, 0.2, 0.3]);
         final str = response.toString();
 
         expect(str, contains('dimensions: 3'));
@@ -372,10 +357,7 @@ void main() {
       });
 
       test('creates model info with details', () {
-        final details = {
-          'parameter_size': '8B',
-          'quantization_level': 'Q4_0',
-        };
+        final details = {'parameter_size': '8B', 'quantization_level': 'Q4_0'};
         final info = OllamaModelInfo(
           name: 'test',
           modifiedAt: DateTime.now(),
@@ -598,9 +580,7 @@ void main() {
       });
 
       test('fromJson with empty models list', () {
-        final json = {
-          'models': [],
-        };
+        final json = {'models': []};
         final response = OllamaModelsResponse.fromJson(json);
 
         expect(response.models, isEmpty);

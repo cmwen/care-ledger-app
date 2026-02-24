@@ -29,9 +29,8 @@ class BalanceScreen extends StatelessWidget {
         final settlements = balanceProvider.settlements;
 
         return RefreshIndicator(
-          onRefresh: () => balanceProvider.refreshBalance(
-            ledgerProvider.activeLedger!,
-          ),
+          onRefresh: () =>
+              balanceProvider.refreshBalance(ledgerProvider.activeLedger!),
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -111,23 +110,23 @@ class BalanceScreen extends StatelessWidget {
                     settlement: s,
                     onAccept: s.status == SettlementStatus.proposed
                         ? () => balanceProvider.respondToSettlement(
-                              settlementId: s.id,
-                              accept: true,
-                              ledger: ledgerProvider.activeLedger,
-                            )
+                            settlementId: s.id,
+                            accept: true,
+                            ledger: ledgerProvider.activeLedger,
+                          )
                         : null,
                     onReject: s.status == SettlementStatus.proposed
                         ? () => balanceProvider.respondToSettlement(
-                              settlementId: s.id,
-                              accept: false,
-                              ledger: ledgerProvider.activeLedger,
-                            )
+                            settlementId: s.id,
+                            accept: false,
+                            ledger: ledgerProvider.activeLedger,
+                          )
                         : null,
                     onComplete: s.status == SettlementStatus.accepted
                         ? () => balanceProvider.completeSettlement(
-                              settlementId: s.id,
-                              ledger: ledgerProvider.activeLedger!,
-                            )
+                            settlementId: s.id,
+                            ledger: ledgerProvider.activeLedger!,
+                          )
                         : null,
                   ),
                 ),
@@ -159,8 +158,9 @@ class BalanceScreen extends StatelessWidget {
                   border: OutlineInputBorder(),
                   suffixText: 'cr',
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<SettlementMethod>(
@@ -170,10 +170,9 @@ class BalanceScreen extends StatelessWidget {
                   border: OutlineInputBorder(),
                 ),
                 items: SettlementMethod.values
-                    .map((m) => DropdownMenuItem(
-                          value: m,
-                          child: Text(m.label),
-                        ))
+                    .map(
+                      (m) => DropdownMenuItem(value: m, child: Text(m.label)),
+                    )
                     .toList(),
                 onChanged: (v) {
                   if (v != null) {
@@ -202,15 +201,14 @@ class BalanceScreen extends StatelessWidget {
                 if (credits == null || credits <= 0) return;
                 final ledgerProvider = context.read<LedgerProvider>();
                 context.read<BalanceProvider>().proposeSettlement(
-                      ledgerId: ledgerProvider.activeLedger!.id,
-                      proposerId:
-                          ledgerProvider.activeLedger!.participantAId,
-                      method: selectedMethod,
-                      credits: credits,
-                      note: noteController.text.isNotEmpty
-                          ? noteController.text
-                          : null,
-                    );
+                  ledgerId: ledgerProvider.activeLedger!.id,
+                  proposerId: ledgerProvider.activeLedger!.participantAId,
+                  method: selectedMethod,
+                  credits: credits,
+                  note: noteController.text.isNotEmpty
+                      ? noteController.text
+                      : null,
+                );
                 Navigator.pop(ctx);
               },
               child: const Text('Propose'),
@@ -280,8 +278,9 @@ class _BalanceOverviewCard extends StatelessWidget {
                     Text(
                       'confirmed credits',
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer
-                            .withValues(alpha: 0.7),
+                        color: theme.colorScheme.onPrimaryContainer.withValues(
+                          alpha: 0.7,
+                        ),
                       ),
                     ),
                   ],
@@ -304,8 +303,9 @@ class _BalanceOverviewCard extends StatelessWidget {
                     Text(
                       'confirmed credits',
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer
-                            .withValues(alpha: 0.7),
+                        color: theme.colorScheme.onPrimaryContainer.withValues(
+                          alpha: 0.7,
+                        ),
                       ),
                     ),
                   ],
@@ -316,7 +316,9 @@ class _BalanceOverviewCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.1),
+                color: theme.colorScheme.onPrimaryContainer.withValues(
+                  alpha: 0.1,
+                ),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(

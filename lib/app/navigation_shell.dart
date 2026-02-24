@@ -90,10 +90,7 @@ class _NavigationShellState extends State<NavigationShell> {
           ),
         ],
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) async {
@@ -105,13 +102,13 @@ class _NavigationShellState extends State<NavigationShell> {
               case 0:
                 await ledgerProvider.refreshEntries();
               case 1:
-                await context
-                    .read<ReviewProvider>()
-                    .loadReviewQueue(ledgerProvider.activeLedger!.id);
+                await context.read<ReviewProvider>().loadReviewQueue(
+                  ledgerProvider.activeLedger!.id,
+                );
               case 3:
-                await context
-                    .read<BalanceProvider>()
-                    .refreshBalance(ledgerProvider.activeLedger!);
+                await context.read<BalanceProvider>().refreshBalance(
+                  ledgerProvider.activeLedger!,
+                );
             }
           }
         },
