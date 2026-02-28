@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:care_ledger_app/features/ledger/domain/care_entry.dart';
+import 'package:care_ledger_app/features/settings/presentation/settings_provider.dart';
 
 /// Summary card for the current week displayed at top of Ledger screen.
 class WeekSummaryCard extends StatelessWidget {
@@ -17,6 +19,7 @@ class WeekSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final settings = context.watch<SettingsProvider>();
     final confirmedCount = weekEntries.where((e) => e.isConfirmed).length;
     final totalCredits = weekEntries
         .where((e) => e.isConfirmed)
@@ -24,6 +27,12 @@ class WeekSummaryCard extends StatelessWidget {
           0,
           (sum, e) => sum + (e.creditsConfirmed ?? e.creditsProposed),
         );
+
+    // Per-participant entry counts
+    final myEntries = weekEntries
+        .where((e) => e.authorId == settings.currentUserId)
+        .length;
+    final partnerEntries = weekEntries.length - myEntries;
 
     return Card(
       elevation: 0,
@@ -68,6 +77,75 @@ class WeekSummaryCard extends StatelessWidget {
                   label: 'Credits',
                   value: totalCredits.toStringAsFixed(1),
                   icon: Icons.stars_outlined,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Per-participant split with color coding
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Your entries: $myEntries',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.tertiary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.colorScheme.tertiary,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${settings.partnerName}\'s: $partnerEntries',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

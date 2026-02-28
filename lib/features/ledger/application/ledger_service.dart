@@ -3,6 +3,9 @@ import 'package:care_ledger_app/features/ledger/domain/ledger.dart';
 import 'package:care_ledger_app/features/ledger/domain/care_entry.dart';
 import 'package:care_ledger_app/features/ledger/infrastructure/ledger_repository.dart';
 import 'package:care_ledger_app/features/ledger/infrastructure/care_entry_repository.dart';
+import 'package:care_ledger_app/sync/domain/sync_event.dart';
+import 'package:care_ledger_app/sync/application/sync_hasher.dart';
+import 'package:care_ledger_app/sync/infrastructure/sync_event_repository.dart';
 
 /// Application service for ledger and care entry operations.
 ///
@@ -10,15 +13,21 @@ import 'package:care_ledger_app/features/ledger/infrastructure/care_entry_reposi
 /// - Ledger has exactly two distinct participants.
 /// - Archived ledgers are read-only.
 /// - creditsProposed >= 0.
+///
+/// Appends a [SyncEvent] for every write operation when a
+/// [SyncEventRepository] is provided.
 class LedgerService {
   final LedgerRepository _ledgerRepo;
   final CareEntryRepository _entryRepo;
+  final SyncEventRepository? _syncRepo;
 
   LedgerService({
     required LedgerRepository ledgerRepo,
     required CareEntryRepository entryRepo,
+    SyncEventRepository? syncRepo,
   }) : _ledgerRepo = ledgerRepo,
-       _entryRepo = entryRepo;
+       _entryRepo = entryRepo,
+       _syncRepo = syncRepo;
 
   // ── Ledger operations ──
 
@@ -110,6 +119,25 @@ class LedgerService {
     );
 
     await _entryRepo.save(entry);
+
+    // Append sync event for the new entry.
+    await _appendSyncEvent(
+      ledgerId: ledgerId,
+      actorId: authorId,
+      entityType: SyncEntityType.careEntry,
+      entityId: entry.id,
+      opType: SyncEventType.create,
+      payload: {
+        'category': category.label,
+        'description': description,
+        'creditsProposed': creditsProposed,
+        'occurredAt': occurredAt.toIso8601String(),
+        if (durationMinutes != null) 'durationMinutes': durationMinutes,
+        'sourceType': sourceType.label,
+        if (sourceHint != null) 'sourceHint': sourceHint,
+      },
+    );
+
     return entry;
   }
 
@@ -175,5 +203,58 @@ class LedgerService {
   Future<int> getPendingReviewCount(String ledgerId) async {
     final queue = await _entryRepo.getReviewQueue(ledgerId);
     return queue.length;
+  }
+
+  // ── Sync helpers ──
+
+  /// Append a sync event if a [SyncEventRepository] is wired.
+  Future<void> _appendSyncEvent({
+    required String ledgerId,
+    required String actorId,
+    required SyncEntityType entityType,
+    required String entityId,
+    required SyncEventType opType,
+    required Map<String, dynamic> payload,
+  }) async {
+    if (_syncRepo == null) return;
+
+    final prevLamport = await _syncRepo.getMaxLamport(ledgerId);
+    final lamport = prevLamport + 1;
+
+    // Get the previous hash for chain linking.
+    final existing = await _syncRepo.getByLedgerId(ledgerId);
+    final prevHash = existing.isNotEmpty ? existing.last.hash : null;
+
+    final event = SyncEvent(
+      eventId: IdGenerator.generate(),
+      ledgerId: ledgerId,
+      actorId: actorId,
+      entityType: entityType,
+      entityId: entityId,
+      opType: opType,
+      payload: payload,
+      lamport: lamport,
+      prevHash: prevHash,
+      createdAt: DateTime.now(),
+    );
+
+    // Compute and set the hash.
+    final hash = SyncHasher.computeHash(event);
+    final hashedEvent = SyncEvent(
+      eventId: event.eventId,
+      ledgerId: event.ledgerId,
+      actorId: event.actorId,
+      deviceId: event.deviceId,
+      entityType: event.entityType,
+      entityId: event.entityId,
+      opType: event.opType,
+      payload: event.payload,
+      lamport: event.lamport,
+      prevHash: event.prevHash,
+      hash: hash,
+      createdAt: event.createdAt,
+    );
+
+    await _syncRepo.append(hashedEvent);
   }
 }

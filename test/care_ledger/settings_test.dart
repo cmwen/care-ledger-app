@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:care_ledger_app/core/identity_service.dart';
 import 'package:care_ledger_app/features/settings/domain/participant.dart';
 import 'package:care_ledger_app/features/settings/presentation/settings_provider.dart';
 import 'package:flutter/material.dart';
@@ -25,24 +27,38 @@ void main() {
 
   group('SettingsProvider', () {
     late SettingsProvider provider;
+    late IdentityService identity;
 
-    setUp(() {
-      provider = SettingsProvider();
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({
+        'cl_device_id': 'test-device-id',
+        'cl_user_name': 'Test User',
+        'cl_is_onboarded': true,
+        'cl_partner_id': 'test-partner-id',
+        'cl_partner_name': 'Test Partner',
+        'cl_is_paired': true,
+        'cl_invite_code': 'ABC123',
+      });
+      identity = await IdentityService.create();
+      provider = SettingsProvider(identity: identity);
     });
 
-    test('has default participants', () {
+    test('has participants from identity', () {
       expect(provider.participantList.length, equals(2));
-      expect(provider.participantName('participant-a'), equals('Parent A'));
-      expect(provider.participantName('participant-b'), equals('Parent B'));
+      expect(provider.participantName('test-device-id'), equals('Test User'));
+      expect(
+        provider.participantName('test-partner-id'),
+        equals('Test Partner'),
+      );
     });
 
-    test('currentUserId defaults to participant-a', () {
-      expect(provider.currentUserId, equals('participant-a'));
+    test('currentUserId matches device id', () {
+      expect(provider.currentUserId, equals('test-device-id'));
     });
 
     test('updateParticipantName updates name', () {
-      provider.updateParticipantName('participant-a', 'Mom');
-      expect(provider.participantName('participant-a'), equals('Mom'));
+      provider.updateParticipantName('test-device-id', 'Mom');
+      expect(provider.participantName('test-device-id'), equals('Mom'));
     });
 
     test('addParticipant adds new participant', () {
@@ -54,7 +70,7 @@ void main() {
     });
 
     test('removeParticipant cannot remove current user', () {
-      provider.removeParticipant('participant-a');
+      provider.removeParticipant('test-device-id');
       expect(provider.participantList.length, equals(2));
     });
 
@@ -76,13 +92,48 @@ void main() {
       expect(provider.themeMode, equals(ThemeMode.dark));
     });
 
-    test('setCurrentUser changes current user', () {
-      provider.setCurrentUser('participant-b');
-      expect(provider.currentUserId, equals('participant-b'));
+    test('isOnboarded reflects identity state', () {
+      expect(provider.isOnboarded, isTrue);
+    });
+
+    test('isPaired reflects identity state', () {
+      expect(provider.isPaired, isTrue);
     });
 
     test('participantName fallback to id for unknown', () {
       expect(provider.participantName('unknown'), equals('unknown'));
+    });
+  });
+
+  group('SettingsProvider — fresh identity', () {
+    late SettingsProvider provider;
+    late IdentityService identity;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      identity = await IdentityService.create();
+      provider = SettingsProvider(identity: identity);
+    });
+
+    test('starts not onboarded', () {
+      expect(provider.isOnboarded, isFalse);
+    });
+
+    test('starts not paired', () {
+      expect(provider.isPaired, isFalse);
+    });
+
+    test('completeOnboarding updates state', () async {
+      await provider.completeOnboarding('Alice');
+      expect(provider.isOnboarded, isTrue);
+      expect(provider.currentUser?.name, equals('Alice'));
+    });
+
+    test('completePairing updates state', () async {
+      await provider.completeOnboarding('Alice');
+      await provider.completePairing('Bob', 'bob-device-id');
+      expect(provider.isPaired, isTrue);
+      expect(provider.participantName('bob-device-id'), equals('Bob'));
     });
   });
 }

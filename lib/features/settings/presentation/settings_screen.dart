@@ -4,6 +4,8 @@ import 'package:care_ledger_app/features/ledger/presentation/ledger_provider.dar
 import 'package:care_ledger_app/features/settings/presentation/settings_provider.dart';
 import 'package:care_ledger_app/features/settings/domain/participant.dart';
 import 'package:care_ledger_app/core/ids.dart';
+import 'package:care_ledger_app/sync/presentation/sync_provider.dart';
+import 'package:care_ledger_app/sync/presentation/sync_screen.dart';
 
 /// Settings screen with participants, language, theme, and ledger info.
 class SettingsScreen extends StatelessWidget {
@@ -122,31 +124,77 @@ class SettingsScreen extends StatelessWidget {
               elevation: 0,
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                child: Builder(
+                  builder: (context) {
+                    // SyncProvider is optional — check if it's available.
+                    SyncProvider? syncProvider;
+                    try {
+                      syncProvider = context.watch<SyncProvider>();
+                    } catch (_) {
+                      // SyncProvider not wired yet.
+                    }
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.amber,
+                        Row(
+                          children: [
+                            Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: syncProvider != null
+                                    ? Colors.green
+                                    : Colors.amber,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                syncProvider != null
+                                    ? 'Export/Import sync enabled'
+                                    : 'Local mode (sync not yet enabled)',
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (syncProvider != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            '${syncProvider.localEventCount} sync events recorded',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        Text(
+                          syncProvider != null
+                              ? 'Tap below to share or receive data with your partner.'
+                              : 'All data is stored locally on this device.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.grey,
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        const Text('Local mode (sync not yet enabled)'),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const SyncScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.sync, size: 18),
+                            label: const Text('Sync Data'),
+                          ),
+                        ),
                       ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'All data is stored locally on this device.',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),

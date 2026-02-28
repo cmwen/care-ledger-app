@@ -3,6 +3,9 @@ import 'package:care_ledger_app/features/ledger/domain/care_entry.dart';
 import 'package:care_ledger_app/features/ledger/infrastructure/care_entry_repository.dart';
 import 'package:care_ledger_app/features/reviews/domain/entry_review.dart';
 import 'package:care_ledger_app/features/reviews/infrastructure/review_repository.dart';
+import 'package:care_ledger_app/sync/domain/sync_event.dart';
+import 'package:care_ledger_app/sync/application/sync_hasher.dart';
+import 'package:care_ledger_app/sync/infrastructure/sync_event_repository.dart';
 
 /// Application service for entry review workflow.
 ///
@@ -10,15 +13,21 @@ import 'package:care_ledger_app/features/reviews/infrastructure/review_repositor
 /// - Reviewer cannot be the entry author.
 /// - needs_edit requires a reason.
 /// - Transitions follow the status machine.
+///
+/// Appends a [SyncEvent] for every review when a
+/// [SyncEventRepository] is provided.
 class ReviewService {
   final CareEntryRepository _entryRepo;
   final ReviewRepository _reviewRepo;
+  final SyncEventRepository? _syncRepo;
 
   ReviewService({
     required CareEntryRepository entryRepo,
     required ReviewRepository reviewRepo,
+    SyncEventRepository? syncRepo,
   }) : _entryRepo = entryRepo,
-       _reviewRepo = reviewRepo;
+       _reviewRepo = reviewRepo,
+       _syncRepo = syncRepo;
 
   /// Get the review queue for a ledger (entries needing action).
   Future<List<CareEntry>> getReviewQueue(String ledgerId) =>
@@ -79,6 +88,21 @@ class ReviewService {
     );
     await _entryRepo.save(updatedEntry);
 
+    // Append sync event for the review action.
+    await _appendSyncEvent(
+      ledgerId: entry.ledgerId,
+      actorId: reviewerId,
+      entityType: SyncEntityType.entryReview,
+      entityId: review.id,
+      opType: SyncEventType.create,
+      payload: {
+        'entryId': entryId,
+        'decision': decision.label,
+        if (reason != null) 'reason': reason,
+        'entryRevisionReviewed': entry.revision,
+      },
+    );
+
     return review;
   }
 
@@ -137,6 +161,57 @@ class ReviewService {
   /// Get the review history for a specific entry.
   Future<List<EntryReview>> getEntryHistory(String entryId) =>
       _reviewRepo.getByEntryId(entryId);
+
+  // ── Sync helpers ──
+
+  /// Append a sync event if a [SyncEventRepository] is wired.
+  Future<void> _appendSyncEvent({
+    required String ledgerId,
+    required String actorId,
+    required SyncEntityType entityType,
+    required String entityId,
+    required SyncEventType opType,
+    required Map<String, dynamic> payload,
+  }) async {
+    if (_syncRepo == null) return;
+
+    final prevLamport = await _syncRepo.getMaxLamport(ledgerId);
+    final lamport = prevLamport + 1;
+
+    final existing = await _syncRepo.getByLedgerId(ledgerId);
+    final prevHash = existing.isNotEmpty ? existing.last.hash : null;
+
+    final event = SyncEvent(
+      eventId: IdGenerator.generate(),
+      ledgerId: ledgerId,
+      actorId: actorId,
+      entityType: entityType,
+      entityId: entityId,
+      opType: opType,
+      payload: payload,
+      lamport: lamport,
+      prevHash: prevHash,
+      createdAt: DateTime.now(),
+    );
+
+    final hash = SyncHasher.computeHash(event);
+    final hashedEvent = SyncEvent(
+      eventId: event.eventId,
+      ledgerId: event.ledgerId,
+      actorId: event.actorId,
+      deviceId: event.deviceId,
+      entityType: event.entityType,
+      entityId: event.entityId,
+      opType: event.opType,
+      payload: event.payload,
+      lamport: event.lamport,
+      prevHash: event.prevHash,
+      hash: hash,
+      createdAt: event.createdAt,
+    );
+
+    await _syncRepo.append(hashedEvent);
+  }
 
   EntryStatus _mapDecisionToStatus(
     ReviewDecision decision,

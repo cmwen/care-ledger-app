@@ -8,6 +8,8 @@ import 'package:care_ledger_app/features/timeline/presentation/timeline_screen.d
 import 'package:care_ledger_app/features/balance/presentation/balance_screen.dart';
 import 'package:care_ledger_app/features/balance/presentation/balance_provider.dart';
 import 'package:care_ledger_app/features/settings/presentation/settings_screen.dart';
+import 'package:care_ledger_app/features/settings/presentation/settings_provider.dart';
+import 'package:care_ledger_app/features/auto_capture/presentation/auto_capture_provider.dart';
 
 /// Main navigation shell with bottom tab bar.
 ///
@@ -57,10 +59,16 @@ class _NavigationShellState extends State<NavigationShell> {
     if (ledgerProvider.hasLedger && mounted) {
       final reviewProvider = context.read<ReviewProvider>();
       final balanceProvider = context.read<BalanceProvider>();
+      final autoCaptureProvider = context.read<AutoCaptureProvider>();
+      final settings = context.read<SettingsProvider>();
 
       await Future.wait([
         reviewProvider.loadReviewQueue(ledgerProvider.activeLedger!.id),
         balanceProvider.refreshBalance(ledgerProvider.activeLedger!),
+        autoCaptureProvider.generateSuggestions(
+          ledgerId: ledgerProvider.activeLedger!.id,
+          authorId: settings.currentUserId,
+        ),
       ]);
     }
   }
@@ -70,15 +78,50 @@ class _NavigationShellState extends State<NavigationShell> {
     final theme = Theme.of(context);
     final ledgerProvider = context.watch<LedgerProvider>();
     final reviewProvider = context.watch<ReviewProvider>();
+    final autoCaptureProvider = context.watch<AutoCaptureProvider>();
+    final settings = context.watch<SettingsProvider>();
+
+    final totalReviewBadge =
+        reviewProvider.queueCount + autoCaptureProvider.pendingSuggestionCount;
 
     return Scaffold(
       appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.all(8),
+          child: CircleAvatar(
+            backgroundColor: theme.colorScheme.primary,
+            child: Text(
+              settings.currentUser?.initial ?? '?',
+              style: TextStyle(
+                color: theme.colorScheme.onPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
         title: Text(
           ledgerProvider.hasLedger
               ? ledgerProvider.activeLedger!.title
               : _titles[_currentIndex],
         ),
         actions: [
+          // Partner avatar
+          if (settings.isPaired)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: theme.colorScheme.tertiary,
+                child: Text(
+                  settings.partner?.initial ?? '?',
+                  style: TextStyle(
+                    color: theme.colorScheme.onTertiary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
           // Sync indicator placeholder
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -120,13 +163,13 @@ class _NavigationShellState extends State<NavigationShell> {
           ),
           NavigationDestination(
             icon: Badge(
-              isLabelVisible: reviewProvider.queueCount > 0,
-              label: Text('${reviewProvider.queueCount}'),
+              isLabelVisible: totalReviewBadge > 0,
+              label: Text('$totalReviewBadge'),
               child: const Icon(Icons.inbox_outlined),
             ),
             selectedIcon: Badge(
-              isLabelVisible: reviewProvider.queueCount > 0,
-              label: Text('${reviewProvider.queueCount}'),
+              isLabelVisible: totalReviewBadge > 0,
+              label: Text('$totalReviewBadge'),
               child: const Icon(Icons.inbox),
             ),
             label: 'Review',

@@ -2,18 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:care_ledger_app/features/ledger/presentation/ledger_provider.dart';
 import 'package:care_ledger_app/features/balance/presentation/balance_provider.dart';
+import 'package:care_ledger_app/features/settings/presentation/settings_provider.dart';
 import 'package:care_ledger_app/features/settlements/domain/settlement.dart';
 
 /// Balance & Settlements screen.
 ///
 /// Shows confirmed contribution totals, net balance,
 /// pending credits, and settlement lifecycle.
+/// All labels reflect the current user's perspective.
 class BalanceScreen extends StatelessWidget {
   const BalanceScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final settings = context.watch<SettingsProvider>();
 
     return Consumer2<LedgerProvider, BalanceProvider>(
       builder: (context, ledgerProvider, balanceProvider, _) {
@@ -28,6 +31,44 @@ class BalanceScreen extends StatelessWidget {
         final balance = balanceProvider.balance;
         final settlements = balanceProvider.settlements;
 
+        // Determine which side is the current user
+        final isACurrentUser =
+            balance?.participantA.participantId == settings.currentUserId;
+
+        // Confirmed credits from current user's perspective
+        final currentUserConfirmed = isACurrentUser
+            ? (balance?.participantA.confirmedCredits ?? 0)
+            : (balance?.participantB.confirmedCredits ?? 0);
+        final partnerConfirmed = isACurrentUser
+            ? (balance?.participantB.confirmedCredits ?? 0)
+            : (balance?.participantA.confirmedCredits ?? 0);
+
+        // Pending credits from current user's perspective
+        final currentUserPending = isACurrentUser
+            ? (balance?.participantA.pendingCredits ?? 0)
+            : (balance?.participantB.pendingCredits ?? 0);
+        final partnerPending = isACurrentUser
+            ? (balance?.participantB.pendingCredits ?? 0)
+            : (balance?.participantA.pendingCredits ?? 0);
+        final currentUserPendingCount = isACurrentUser
+            ? (balance?.participantA.pendingEntryCount ?? 0)
+            : (balance?.participantB.pendingEntryCount ?? 0);
+        final partnerPendingCount = isACurrentUser
+            ? (balance?.participantB.pendingEntryCount ?? 0)
+            : (balance?.participantA.pendingEntryCount ?? 0);
+
+        // Balance perspective text
+        String balanceText;
+        if (balance == null || balance.creditorId == null) {
+          balanceText = 'All balanced!';
+        } else if (balance.creditorId == settings.currentUserId) {
+          balanceText =
+              '${settings.partnerName} owes you ${balance.netBalance.abs().toStringAsFixed(1)} credits';
+        } else {
+          balanceText =
+              'You owe ${settings.partnerName} ${balance.netBalance.abs().toStringAsFixed(1)} credits';
+        }
+
         return RefreshIndicator(
           onRefresh: () =>
               balanceProvider.refreshBalance(ledgerProvider.activeLedger!),
@@ -37,19 +78,16 @@ class BalanceScreen extends StatelessWidget {
               // Balance overview card
               if (balance != null) ...[
                 _BalanceOverviewCard(
-                  participantAId: balance.participantA.participantId,
-                  participantACredits: balance.participantA.confirmedCredits,
-                  participantBId: balance.participantB.participantId,
-                  participantBCredits: balance.participantB.confirmedCredits,
-                  netBalance: balance.netBalance,
-                  creditorId: balance.creditorId,
-                  debtorId: balance.debtorId,
+                  currentUserLabel: 'You',
+                  currentUserCredits: currentUserConfirmed,
+                  partnerLabel: settings.partnerName,
+                  partnerCredits: partnerConfirmed,
+                  balanceText: balanceText,
                 ),
                 const SizedBox(height: 16),
 
                 // Pending credits
-                if (balance.participantA.pendingCredits > 0 ||
-                    balance.participantB.pendingCredits > 0)
+                if (currentUserPending > 0 || partnerPending > 0)
                   Card(
                     elevation: 0,
                     color: theme.colorScheme.secondaryContainer,
@@ -69,14 +107,14 @@ class BalanceScreen extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               _PendingItem(
-                                label: 'Participant A',
-                                credits: balance.participantA.pendingCredits,
-                                count: balance.participantA.pendingEntryCount,
+                                label: 'You',
+                                credits: currentUserPending,
+                                count: currentUserPendingCount,
                               ),
                               _PendingItem(
-                                label: 'Participant B',
-                                credits: balance.participantB.pendingCredits,
-                                count: balance.participantB.pendingEntryCount,
+                                label: settings.partnerName,
+                                credits: partnerPending,
+                                count: partnerPendingCount,
                               ),
                             ],
                           ),
@@ -105,17 +143,31 @@ class BalanceScreen extends StatelessWidget {
               if (settlements.isNotEmpty) ...[
                 Text('Settlements', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
-                ...settlements.map(
-                  (s) => _SettlementCard(
+                ...settlements.map((s) {
+                  final isProposer = s.proposerId == settings.currentUserId;
+                  return _SettlementCard(
                     settlement: s,
-                    onAccept: s.status == SettlementStatus.proposed
+                    proposerLabel: isProposer
+                        ? 'You proposed'
+                        : '${settings.partnerName} proposed',
+                    onAccept:
+                        s.status == SettlementStatus.proposed && !isProposer
                         ? () => balanceProvider.respondToSettlement(
                             settlementId: s.id,
                             accept: true,
                             ledger: ledgerProvider.activeLedger,
                           )
                         : null,
-                    onReject: s.status == SettlementStatus.proposed
+                    onReject:
+                        s.status == SettlementStatus.proposed && !isProposer
+                        ? () => balanceProvider.respondToSettlement(
+                            settlementId: s.id,
+                            accept: false,
+                            ledger: ledgerProvider.activeLedger,
+                          )
+                        : null,
+                    onCancel:
+                        s.status == SettlementStatus.proposed && isProposer
                         ? () => balanceProvider.respondToSettlement(
                             settlementId: s.id,
                             accept: false,
@@ -128,8 +180,8 @@ class BalanceScreen extends StatelessWidget {
                             ledger: ledgerProvider.activeLedger!,
                           )
                         : null,
-                  ),
-                ),
+                  );
+                }),
               ],
             ],
           ),
@@ -200,9 +252,10 @@ class BalanceScreen extends StatelessWidget {
                 final credits = double.tryParse(creditsController.text);
                 if (credits == null || credits <= 0) return;
                 final ledgerProvider = context.read<LedgerProvider>();
+                final settings = context.read<SettingsProvider>();
                 context.read<BalanceProvider>().proposeSettlement(
                   ledgerId: ledgerProvider.activeLedger!.id,
-                  proposerId: ledgerProvider.activeLedger!.participantAId,
+                  proposerId: settings.currentUserId,
                   method: selectedMethod,
                   credits: credits,
                   note: noteController.text.isNotEmpty
@@ -221,22 +274,18 @@ class BalanceScreen extends StatelessWidget {
 }
 
 class _BalanceOverviewCard extends StatelessWidget {
-  final String participantAId;
-  final double participantACredits;
-  final String participantBId;
-  final double participantBCredits;
-  final double netBalance;
-  final String? creditorId;
-  final String? debtorId;
+  final String currentUserLabel;
+  final double currentUserCredits;
+  final String partnerLabel;
+  final double partnerCredits;
+  final String balanceText;
 
   const _BalanceOverviewCard({
-    required this.participantAId,
-    required this.participantACredits,
-    required this.participantBId,
-    required this.participantBCredits,
-    required this.netBalance,
-    required this.creditorId,
-    required this.debtorId,
+    required this.currentUserLabel,
+    required this.currentUserCredits,
+    required this.partnerLabel,
+    required this.partnerCredits,
+    required this.balanceText,
   });
 
   @override
@@ -263,13 +312,13 @@ class _BalanceOverviewCard extends StatelessWidget {
                 Column(
                   children: [
                     Text(
-                      'Participant A',
+                      currentUserLabel,
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: theme.colorScheme.onPrimaryContainer,
                       ),
                     ),
                     Text(
-                      participantACredits.toStringAsFixed(1),
+                      currentUserCredits.toStringAsFixed(1),
                       style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: theme.colorScheme.onPrimaryContainer,
@@ -288,13 +337,13 @@ class _BalanceOverviewCard extends StatelessWidget {
                 Column(
                   children: [
                     Text(
-                      'Participant B',
+                      partnerLabel,
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: theme.colorScheme.onPrimaryContainer,
                       ),
                     ),
                     Text(
-                      participantBCredits.toStringAsFixed(1),
+                      partnerCredits.toStringAsFixed(1),
                       style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: theme.colorScheme.onPrimaryContainer,
@@ -322,13 +371,12 @@ class _BalanceOverviewCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                creditorId == null
-                    ? 'Balanced!'
-                    : 'Net: ${netBalance.abs().toStringAsFixed(1)} cr',
+                balanceText,
                 style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.bold,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
           ],
@@ -372,14 +420,18 @@ class _PendingItem extends StatelessWidget {
 
 class _SettlementCard extends StatelessWidget {
   final Settlement settlement;
+  final String proposerLabel;
   final VoidCallback? onAccept;
   final VoidCallback? onReject;
+  final VoidCallback? onCancel;
   final VoidCallback? onComplete;
 
   const _SettlementCard({
     required this.settlement,
+    required this.proposerLabel,
     this.onAccept,
     this.onReject,
+    this.onCancel,
     this.onComplete,
   });
 
@@ -415,6 +467,11 @@ class _SettlementCard extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 4),
+            Text(
+              proposerLabel,
+              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
+            ),
             if (settlement.note != null) ...[
               const SizedBox(height: 8),
               Text(
@@ -422,11 +479,23 @@ class _SettlementCard extends StatelessWidget {
                 style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
               ),
             ],
-            if (onAccept != null || onReject != null || onComplete != null) ...[
+            if (onAccept != null ||
+                onReject != null ||
+                onCancel != null ||
+                onComplete != null) ...[
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  if (onCancel != null)
+                    OutlinedButton(
+                      onPressed: onCancel,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.orange,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      child: const Text('Cancel'),
+                    ),
                   if (onReject != null)
                     OutlinedButton(
                       onPressed: onReject,

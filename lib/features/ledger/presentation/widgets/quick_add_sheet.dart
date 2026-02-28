@@ -21,14 +21,7 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
   final _creditsController = TextEditingController(text: '1.0');
   DateTime _occurredAt = DateTime.now();
   TimeOfDay _occurredTime = TimeOfDay.now();
-  late String _selectedAuthorId;
   bool _isSubmitting = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedAuthorId = context.read<SettingsProvider>().currentUserId;
-  }
 
   @override
   void dispose() {
@@ -40,8 +33,6 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final settings = context.watch<SettingsProvider>();
-    final ledgerProvider = context.read<LedgerProvider>();
 
     return Padding(
       padding: EdgeInsets.only(
@@ -66,39 +57,6 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
             ],
           ),
           const SizedBox(height: 16),
-
-          // Author selection
-          if (ledgerProvider.hasLedger) ...[
-            Text('Author', style: theme.textTheme.labelLarge),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: settings.participantList.map((p) {
-                final isSelected = p.id == _selectedAuthorId;
-                return ChoiceChip(
-                  selected: isSelected,
-                  avatar: CircleAvatar(
-                    radius: 12,
-                    backgroundColor: isSelected
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.surfaceContainerHighest,
-                    child: Text(
-                      p.initial,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: isSelected
-                            ? theme.colorScheme.onPrimary
-                            : theme.colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                  label: Text(p.name),
-                  onSelected: (_) => setState(() => _selectedAuthorId = p.id),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-          ],
 
           // Category chips
           Text('Category', style: theme.textTheme.labelLarge),
@@ -269,7 +227,7 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
       description: description.isNotEmpty ? description : null,
       creditsProposed: credits,
       occurredAt: occurredAt,
-      authorId: _selectedAuthorId,
+      authorId: context.read<SettingsProvider>().currentUserId,
     );
 
     if (mounted) {

@@ -93,13 +93,26 @@ class _TimelineScreenState extends State<TimelineScreen> {
                               children: [
                                 CircleAvatar(
                                   radius: 12,
+                                  backgroundColor:
+                                      p.id == settings.currentUserId
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.tertiary,
                                   child: Text(
                                     p.initial,
-                                    style: const TextStyle(fontSize: 10),
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: p.id == settings.currentUserId
+                                          ? theme.colorScheme.onPrimary
+                                          : theme.colorScheme.onTertiary,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                Text(p.name),
+                                Text(
+                                  p.id == settings.currentUserId
+                                      ? 'Your entries'
+                                      : p.name,
+                                ),
                               ],
                             ),
                           ),
@@ -135,8 +148,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'No entries to show',
+                            _emptyStateText(context),
                             style: TextStyle(color: Colors.grey[600]),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
@@ -149,6 +163,17 @@ class _TimelineScreenState extends State<TimelineScreen> {
         );
       },
     );
+  }
+
+  String _emptyStateText(BuildContext context) {
+    if (_participantFilter != null) {
+      final settings = context.read<SettingsProvider>();
+      if (_participantFilter == settings.currentUserId) {
+        return 'No entries from you yet';
+      }
+      return 'No entries from ${settings.partnerName}';
+    }
+    return 'No entries to show';
   }
 
   Widget _buildDayView(BuildContext context, List<CareEntry> entries) {
@@ -462,6 +487,10 @@ class _TimelineItem extends StatelessWidget {
     final theme = Theme.of(context);
     final settings = context.watch<SettingsProvider>();
     final catColor = _categoryColor(entry.category);
+    final isCurrentUser = entry.authorId == settings.currentUserId;
+    final dotColor = isCurrentUser
+        ? theme.colorScheme.primary
+        : theme.colorScheme.tertiary;
 
     return IntrinsicHeight(
       child: Row(
@@ -472,15 +501,15 @@ class _TimelineItem extends StatelessWidget {
             width: 32,
             child: Column(
               children: [
-                // Dot with category color
+                // Dot with ownership color
                 Container(
                   width: 12,
                   height: 12,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: catColor,
+                    color: dotColor,
                     border: Border.all(
-                      color: catColor.withValues(alpha: 0.3),
+                      color: dotColor.withValues(alpha: 0.3),
                       width: 2,
                     ),
                   ),
@@ -546,7 +575,7 @@ class _TimelineItem extends StatelessWidget {
                         Row(
                           children: [
                             Text(
-                              settings.participantName(entry.authorId),
+                              settings.perspectiveName(entry.authorId),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: Colors.grey[500],
                               ),

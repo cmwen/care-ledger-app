@@ -15,9 +15,28 @@ class EntryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final settings = context.watch<SettingsProvider>();
+    final isCurrentUser = entry.authorId == settings.currentUserId;
+    final stripColor = isCurrentUser
+        ? theme.colorScheme.primary
+        : theme.colorScheme.tertiary;
+
+    // Personalized status label
+    String statusLabel;
+    if (entry.status == EntryStatus.pendingCounterpartyReview) {
+      statusLabel = isCurrentUser
+          ? 'Waiting for ${settings.partnerName}'
+          : 'Waiting for your review';
+    } else if (entry.status == EntryStatus.needsEdit) {
+      statusLabel = isCurrentUser
+          ? 'Edit requested by ${settings.partnerName}'
+          : 'You requested edits';
+    } else {
+      statusLabel = entry.status.label;
+    }
 
     return Card(
       elevation: 0,
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5),
@@ -25,115 +44,135 @@ class EntryCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
+        child: IntrinsicHeight(
           child: Row(
             children: [
-              // Category icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: _categoryColor(entry.category).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  _categoryIcon(entry.category),
-                  color: _categoryColor(entry.category),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-
-              // Entry details
+              // Ownership color strip
+              Container(width: 4, color: stripColor),
+              // Card content
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.description,
-                      style: theme.textTheme.bodyLarge,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        // Author avatar
-                        CircleAvatar(
-                          radius: 8,
-                          backgroundColor:
-                              theme.colorScheme.surfaceContainerHighest,
-                          child: Text(
-                            settings
-                                .participantName(entry.authorId)
-                                .substring(0, 1)
-                                .toUpperCase(),
-                            style: const TextStyle(fontSize: 8),
-                          ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      // Category icon
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: _categoryColor(
+                            entry.category,
+                          ).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            settings.participantName(entry.authorId),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.grey,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        child: Icon(
+                          _categoryIcon(entry.category),
+                          color: _categoryColor(entry.category),
+                          size: 24,
                         ),
-                        const SizedBox(width: 8),
-                        Text('·', style: TextStyle(color: Colors.grey[400])),
-                        const SizedBox(width: 8),
-                        Text(
-                          DateFormat.MMMd().format(entry.occurredAt),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.grey,
-                          ),
-                        ),
-                        if (entry.durationMinutes != null) ...[
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.timer_outlined,
-                            size: 12,
-                            color: Colors.grey[400],
-                          ),
-                          const SizedBox(width: 2),
-                          Text(
-                            '${entry.durationMinutes}m',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                        if (entry.sourceType != SourceType.manual) ...[
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.auto_awesome,
-                            size: 14,
-                            color: theme.colorScheme.tertiary,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+                      ),
+                      const SizedBox(width: 12),
 
-              // Credits + status
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${entry.creditsProposed.toStringAsFixed(1)} cr',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                      // Entry details
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              entry.description,
+                              style: theme.textTheme.bodyLarge,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                // Author avatar
+                                CircleAvatar(
+                                  radius: 8,
+                                  backgroundColor: stripColor.withValues(
+                                    alpha: 0.2,
+                                  ),
+                                  child: Text(
+                                    settings
+                                        .participantName(entry.authorId)
+                                        .substring(0, 1)
+                                        .toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 8,
+                                      color: stripColor,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    settings.perspectiveName(entry.authorId),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: Colors.grey,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '·',
+                                  style: TextStyle(color: Colors.grey[400]),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  DateFormat.MMMd().format(entry.occurredAt),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                if (entry.durationMinutes != null) ...[
+                                  const SizedBox(width: 8),
+                                  Icon(
+                                    Icons.timer_outlined,
+                                    size: 12,
+                                    color: Colors.grey[400],
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    '${entry.durationMinutes}m',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                                if (entry.sourceType != SourceType.manual) ...[
+                                  const SizedBox(width: 8),
+                                  Icon(
+                                    Icons.auto_awesome,
+                                    size: 14,
+                                    color: theme.colorScheme.tertiary,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Credits + status
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${entry.creditsProposed.toStringAsFixed(1)} cr',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          _StatusChip(status: entry.status, label: statusLabel),
+                        ],
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  _StatusChip(status: entry.status),
-                ],
+                ),
               ),
             ],
           ),
@@ -195,8 +234,9 @@ class EntryCard extends StatelessWidget {
 
 class _StatusChip extends StatelessWidget {
   final EntryStatus status;
+  final String label;
 
-  const _StatusChip({required this.status});
+  const _StatusChip({required this.status, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -211,12 +251,15 @@ class _StatusChip extends StatelessWidget {
         children: [
           Icon(_statusIcon(status), size: 12, color: _statusColor(status)),
           const SizedBox(width: 4),
-          Text(
-            status.label,
-            style: TextStyle(
-              fontSize: 11,
-              color: _statusColor(status),
-              fontWeight: FontWeight.w500,
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: _statusColor(status),
+                fontWeight: FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

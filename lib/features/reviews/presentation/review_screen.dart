@@ -5,6 +5,9 @@ import 'package:care_ledger_app/features/ledger/domain/care_entry.dart';
 import 'package:care_ledger_app/features/ledger/presentation/ledger_provider.dart';
 import 'package:care_ledger_app/features/reviews/presentation/review_provider.dart';
 import 'package:care_ledger_app/features/reviews/presentation/widgets/review_entry_card.dart';
+import 'package:care_ledger_app/features/settings/presentation/settings_provider.dart';
+import 'package:care_ledger_app/features/auto_capture/presentation/auto_capture_provider.dart';
+import 'package:care_ledger_app/features/auto_capture/presentation/draft_timeline_screen.dart';
 
 /// Weekly Review Queue screen.
 ///
@@ -32,14 +35,19 @@ class _ReviewScreenState extends State<ReviewScreen> {
         final queue = provider.reviewQueue;
 
         if (queue.isEmpty) {
-          return _buildEmptyState(context);
+          return _buildEmptyOrSuggestionsOnly(context);
         }
 
         final grouped = provider.groupedByDay;
+        final autoCaptureProvider = context.watch<AutoCaptureProvider>();
 
         return Scaffold(
           body: Column(
             children: [
+              // Suggestions section at the top
+              if (autoCaptureProvider.hasPendingSuggestions)
+                _buildSuggestionsHeader(context, autoCaptureProvider),
+
               // Bulk action bar (when multi-selecting)
               if (_isMultiSelect) _buildBulkActionBar(context, provider),
 
@@ -73,7 +81,75 @@ class _ReviewScreenState extends State<ReviewScreen> {
     );
   }
 
+  Widget _buildEmptyOrSuggestionsOnly(BuildContext context) {
+    final autoCaptureProvider = context.watch<AutoCaptureProvider>();
+
+    if (autoCaptureProvider.hasPendingSuggestions) {
+      return Scaffold(
+        body: Column(
+          children: [
+            _buildSuggestionsHeader(context, autoCaptureProvider),
+            Expanded(child: _buildEmptyState(context)),
+          ],
+        ),
+      );
+    }
+
+    return _buildEmptyState(context);
+  }
+
+  Widget _buildSuggestionsHeader(
+    BuildContext context,
+    AutoCaptureProvider autoCaptureProvider,
+  ) {
+    final theme = Theme.of(context);
+    final count = autoCaptureProvider.pendingSuggestionCount;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.3),
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DraftTimelineScreen()),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.auto_awesome, color: theme.colorScheme.tertiary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Activity Suggestions',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onTertiaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '$count pattern-based suggestion${count == 1 ? '' : 's'} ready for review',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onTertiaryContainer,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: theme.colorScheme.onTertiaryContainer,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmptyState(BuildContext context) {
+    final settings = context.read<SettingsProvider>();
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -83,16 +159,18 @@ class _ReviewScreenState extends State<ReviewScreen> {
             Icon(Icons.inbox_outlined, size: 80, color: Colors.grey[400]),
             const SizedBox(height: 24),
             Text(
-              'Nothing to review this week',
+              'All caught up!',
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(color: Colors.grey),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'All entries have been reviewed. New entries will appear here when they need your attention.',
+            Text(
+              settings.isPaired
+                  ? '${settings.partnerName} hasn\'t submitted any entries for your review.'
+                  : 'No pending reviews. New entries will appear here when they need your attention.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
+              style: const TextStyle(color: Colors.grey),
             ),
           ],
         ),
@@ -102,6 +180,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   Widget _buildBulkActionBar(BuildContext context, ReviewProvider provider) {
     final theme = Theme.of(context);
+    final settings = context.read<SettingsProvider>();
     final ledgerProvider = context.read<LedgerProvider>();
 
     return Container(
@@ -117,7 +196,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 : () async {
                     await provider.batchApprove(
                       entryIds: _selectedIds.toList(),
-                      reviewerId: ledgerProvider.activeLedger!.participantBId,
+                      reviewerId: settings.currentUserId,
                     );
                     setState(() {
                       _selectedIds.clear();
@@ -194,10 +273,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
     CareEntry entry,
     ReviewProvider provider,
   ) async {
+    final settings = context.read<SettingsProvider>();
     final ledgerProvider = context.read<LedgerProvider>();
     await provider.approveEntry(
       entryId: entry.id,
-      reviewerId: ledgerProvider.activeLedger!.participantBId,
+      reviewerId: settings.currentUserId,
     );
     if (mounted) {
       await ledgerProvider.refreshEntries();
@@ -232,10 +312,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
             onPressed: () async {
               if (controller.text.trim().isEmpty) return;
               Navigator.pop(ctx);
+              final settings = context.read<SettingsProvider>();
               final ledgerProvider = context.read<LedgerProvider>();
               await provider.rejectEntry(
                 entryId: entry.id,
-                reviewerId: ledgerProvider.activeLedger!.participantBId,
+                reviewerId: settings.currentUserId,
                 reason: controller.text.trim(),
               );
               if (mounted) {
@@ -276,10 +357,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
             onPressed: () async {
               if (controller.text.trim().isEmpty) return;
               Navigator.pop(ctx);
+              final settings = context.read<SettingsProvider>();
               final ledgerProvider = context.read<LedgerProvider>();
               await provider.requestEdits(
                 entryId: entry.id,
-                reviewerId: ledgerProvider.activeLedger!.participantBId,
+                reviewerId: settings.currentUserId,
                 reason: controller.text.trim(),
               );
               if (mounted) {
@@ -316,10 +398,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
             onPressed: () async {
               if (controller.text.trim().isEmpty) return;
               Navigator.pop(ctx);
+              final settings = context.read<SettingsProvider>();
               final ledgerProvider = context.read<LedgerProvider>();
               await provider.batchReject(
                 entryIds: _selectedIds.toList(),
-                reviewerId: ledgerProvider.activeLedger!.participantBId,
+                reviewerId: settings.currentUserId,
                 reason: controller.text.trim(),
               );
               setState(() {

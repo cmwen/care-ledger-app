@@ -6,6 +6,8 @@ import 'package:care_ledger_app/features/ledger/presentation/widgets/entry_card.
 import 'package:care_ledger_app/features/ledger/presentation/widgets/quick_add_sheet.dart';
 import 'package:care_ledger_app/features/ledger/presentation/widgets/edit_entry_sheet.dart';
 import 'package:care_ledger_app/features/ledger/domain/care_entry.dart';
+import 'package:care_ledger_app/features/settings/presentation/settings_provider.dart';
+import 'package:care_ledger_app/features/auto_capture/presentation/widgets/suggestion_banner.dart';
 
 /// Ledger Home screen — the primary tab.
 ///
@@ -34,6 +36,14 @@ class LedgerScreen extends StatelessWidget {
             onRefresh: provider.refreshEntries,
             child: CustomScrollView(
               slivers: [
+                // Suggestion banner (shown when pending suggestions exist)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: SuggestionBanner(),
+                  ),
+                ),
+
                 // Week summary card
                 SliverToBoxAdapter(
                   child: Padding(
@@ -62,25 +72,25 @@ class LedgerScreen extends StatelessWidget {
 
                 // Entry list
                 if (allEntries.isEmpty)
-                  const SliverFillRemaining(
+                  SliverFillRemaining(
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.note_add_outlined,
                             size: 64,
                             color: Colors.grey,
                           ),
-                          SizedBox(height: 16),
-                          Text(
+                          const SizedBox(height: 16),
+                          const Text(
                             'No entries yet',
                             style: TextStyle(color: Colors.grey, fontSize: 16),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
-                            'Tap + to add your first care entry',
-                            style: TextStyle(color: Colors.grey),
+                            'Tap + to log your first care activity.',
+                            style: TextStyle(color: Colors.grey[600]),
                           ),
                         ],
                       ),
@@ -117,6 +127,8 @@ class LedgerScreen extends StatelessWidget {
   }
 
   Widget _buildNoLedger(BuildContext context) {
+    final settings = context.read<SettingsProvider>();
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -143,11 +155,10 @@ class LedgerScreen extends StatelessWidget {
             const SizedBox(height: 32),
             FilledButton.icon(
               onPressed: () {
-                // For MVP, create a default ledger
                 context.read<LedgerProvider>().createLedger(
                   title: 'Family Care Ledger',
-                  participantAId: 'participant-a',
-                  participantBId: 'participant-b',
+                  participantAId: settings.currentUserId,
+                  participantBId: settings.partnerId ?? 'partner-placeholder',
                 );
               },
               icon: const Icon(Icons.add),
