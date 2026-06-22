@@ -48,7 +48,7 @@ dependencies:
   # Simple key-value storage for user preferences and small data
   shared_preferences: ^2.5.5
   # Access to device file system paths (documents, cache, temp directories)
-  path_provider: ^2.1.0
+  path_provider: ^2.1.6
   # HTTP client for API calls
   http: ^1.2.0
 
